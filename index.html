@@ -227,6 +227,35 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
 </div>
 
 <div class="modal-overlay" id="card-menu-modal">
+  <div class="modal-overlay" id="import-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">文本导入题目</span>
+      <button class="modal-close" onclick="closeModal('import-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">粘贴题目（用 ==== 分隔多题）</label>
+        <textarea class="form-input" id="import-text" rows="10"
+        placeholder="示例：
+某流体流速是多少？
+A. 1 m/s
+B. 2 m/s
+C. 3 m/s
+D. 4 m/s
+答案：B
+
+====
+
+下一题..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('import-modal')">取消</button>
+      <button class="btn-submit" onclick="submitImport()">导入</button>
+    </div>
+  </div>
+</div>
   <div class="modal" style="max-width:280px">
     <div class="modal-header"><span class="modal-title">题目操作</span><button class="modal-close" onclick="closeModal('card-menu-modal')">×</button></div>
     <div class="modal-body" style="padding:12px">
@@ -482,6 +511,7 @@ function renderCurrentCard(){
     </div>
     <div style="text-align:center;margin-top:16px">
       <button class="outline-add-btn" onclick="window._openAddQ()">＋ 添加题目</button>
+      <button class="outline-add-btn" onclick="window.openImportModal()">📥 文本导入</button>
     </div>`;
   if(window.MathJax) MathJax.typesetPromise();
   renderStats();
@@ -561,7 +591,74 @@ window.setMode=(mode,el)=>{
   document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active'); loadQuestions();
 };
+// ── TEXT IMPORT ──
+function parseTextBlock(text) {
+  const blocks = text.split('====').map(b => b.trim()).filter(Boolean);
+  let results = [];
 
+  for (let block of blocks) {
+    const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+
+    let question = '';
+    let options = [];
+    let answer = '';
+
+    for (let line of lines) {
+      if (/^[A-D][\.\、]/.test(line)) {
+        options.push(line.replace(/^[A-D][\.\、]\s*/, ''));
+      } else if (/^答案[:：]/.test(line)) {
+        answer = line.replace(/^答案[:：]\s*/, '');
+      } else {
+        question += line + '\n';
+      }
+    }
+
+    results.push({
+      type: 'choice',
+      question: question.trim(),
+      options,
+      answer
+    });
+  }
+
+  return results;
+}
+
+window.openImportModal = () => {
+  if(!state.currentSubject){
+    showToast('请先选择科目','error');
+    return;
+  }
+  openModal('import-modal');
+};
+
+window.submitImport = async () => {
+  const text = $('import-text').value.trim();
+  if(!text){
+    showToast('请输入内容','error');
+    return;
+  }
+
+  const list = parseTextBlock(text);
+
+  setLoading(true);
+
+  for (let q of list) {
+    await addQuestion({
+      ...q,
+      chapterId: state.currentChapter || null,
+      pointName: '',
+      pointId: null
+    });
+  }
+
+  setLoading(false);
+
+  closeModal('import-modal');
+  $('import-text').value = '';
+
+  showToast(`成功导入 ${list.length} 题`, 'success');
+};
 // ── INIT ──
 setLoading(true);
 loadSubjects().then(()=>setLoading(false)).catch(e=>{
