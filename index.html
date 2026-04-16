@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>刷题本</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.min.js"></script>
+<style>
+:root {
+  --bg:#f5f3ef; --surface:#fff; --surface2:#f0ede8; --border:#e0dbd2;
+  --text-primary:#1a1814; --text-secondary:#6b6560; --text-muted:#a09890;
+  --accent:#2c5f8a; --accent-light:#e8f0f7;
+  --fresh:#3a7bd5; --warn:#d48c1a; --warn-bg:#fdf4e3; --danger:#c8560a; --danger-bg:#fdf0e8;
+  --radius:12px;
+  --shadow:0 2px 12px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.04);
+  --shadow-h:0 8px 32px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;display:flex;flex-direction:column}
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;position:sticky;top:0;z-index:100}
+.nav-logo{font-family:'Noto Serif SC',serif;font-weight:600;font-size:16px;margin-right:32px;white-space:nowrap}
+.subject-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none}
+.subject-bar::-webkit-scrollbar{display:none}
+.subject-label{font-size:12px;color:var(--text-muted);white-space:nowrap;margin-right:4px}
+.subject-chip{padding:5px 14px;border-radius:20px;font-size:13px;border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);cursor:pointer;white-space:nowrap;transition:all .15s;user-select:none}
+.subject-chip:hover{border-color:var(--accent);color:var(--accent)}
+.subject-chip.active{background:var(--accent);border-color:var(--accent);color:white;font-weight:500}
+.subject-chip.add-chip{border-style:dashed;color:var(--text-muted)}
+.subject-chip.add-chip:hover{color:var(--accent);border-color:var(--accent)}
+.main{flex:1;display:flex;max-width:960px;margin:0 auto;width:100%;padding:24px 24px 48px;gap:24px}
+.outline-panel{width:220px;flex-shrink:0}
+.panel-title{font-size:11px;font-weight:500;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;padding-left:4px}
+.outline-tree{display:flex;flex-direction:column;gap:2px}
+.outline-chapter{font-size:13px;font-weight:500;color:var(--text-primary);padding:7px 10px;border-radius:8px;cursor:pointer;transition:background .12s;display:flex;align-items:center;gap:6px}
+.outline-chapter:hover{background:var(--surface2)}
+.outline-chapter.active{background:var(--accent-light);color:var(--accent)}
+.outline-chapter .arrow{font-size:9px;transition:transform .2s;color:var(--text-muted)}
+.outline-chapter.open .arrow{transform:rotate(90deg)}
+.outline-points{display:none;flex-direction:column;gap:1px;padding-left:16px}
+.outline-points.visible{display:flex}
+.outline-point{font-size:12px;color:var(--text-secondary);padding:5px 10px;border-radius:6px;cursor:pointer;transition:background .12s;display:flex;align-items:center;justify-content:space-between}
+.outline-point:hover{background:var(--surface2)}
+.outline-point.active{background:var(--accent-light);color:var(--accent);font-weight:500}
+.point-count{font-size:11px;color:var(--text-muted);background:var(--surface2);padding:1px 6px;border-radius:10px}
+.outline-add-btn{margin-top:8px;width:100%;padding:7px;border-radius:8px;border:1px dashed var(--border);background:transparent;font-size:12px;color:var(--text-muted);cursor:pointer;transition:all .15s;font-family:'Noto Sans SC',sans-serif}
+.outline-add-btn:hover{border-color:var(--accent);color:var(--accent)}
+.content-area{flex:1;min-width:0}
+.stats-row{display:flex;gap:8px;margin-bottom:20px}
+.stat-chip{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center}
+.stat-num{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;display:block}
+.stat-num.blue{color:var(--fresh)}.stat-num.yellow{color:var(--warn)}.stat-num.orange{color:var(--danger)}.stat-num.green{color:#2d9a5a}
+.stat-label{font-size:11px;color:var(--text-muted);margin-top:2px}
+.mode-row{display:flex;gap:6px;margin-bottom:16px}
+.mode-btn{padding:5px 12px;border-radius:6px;font-size:12px;border:1px solid var(--border);background:white;color:var(--text-secondary);cursor:pointer;transition:all .15s;font-family:'Noto Sans SC',sans-serif}
+.mode-btn.active{background:var(--accent);border-color:var(--accent);color:white}
+.progress-row{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.progress-info{font-size:12px;color:var(--text-muted);white-space:nowrap}
+.progress-track{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s ease}
+.progress-pct{font-size:12px;font-weight:500;color:var(--accent);white-space:nowrap}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .2s;margin-bottom:16px}
+.card:hover{box-shadow:var(--shadow-h)}
+.card.fresh{border-left:3px solid var(--fresh)}
+.card.warn{border-left:3px solid var(--warn)}
+.card.danger{border-left:3px solid var(--danger)}
+.card-header{padding:14px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card.warn .card-header{background:var(--warn-bg)}
+.card.danger .card-header{background:var(--danger-bg)}
+.q-num{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted)}
+.q-type{font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+.q-type.choice{background:#e8f4fd;color:#1a6fa0}
+.q-type.fill{background:#e8f8ee;color:#1a7a40}
+.q-type.calc{background:#f3e8fd;color:#6a1aa0}
+.q-type.short{background:#fdf3e8;color:#a05a1a}
+.q-topic{font-size:12px;color:var(--text-secondary);margin-left:auto;display:flex;align-items:center;gap:4px}
+.q-topic span{color:var(--accent)}
+.error-badge{font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+.card.warn .error-badge{background:#f5e0a0;color:var(--warn)}
+.card.danger .error-badge{background:#f5c8a0;color:var(--danger)}
+.card-menu-btn{background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);padding:0 4px;line-height:1}
+.card-menu-btn:hover{color:var(--text-primary)}
+.card-body{padding:20px}
+.question-text{font-size:15px;line-height:1.75;color:var(--text-primary);margin-bottom:16px;font-family:'Noto Serif SC',serif}
+.options-list{display:flex;flex-direction:column;gap:8px;margin-bottom:4px}
+.option{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:all .15s;font-size:14px;line-height:1.6}
+.option:hover{border-color:var(--accent);background:var(--accent-light)}
+.option.selected{border-color:var(--accent);background:var(--accent-light)}
+.opt-label{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--text-muted);min-width:18px;margin-top:1px}
+.answer-section{border-top:1px dashed var(--border);margin-top:16px;padding-top:16px;display:none;animation:fadeIn .2s ease}
+.answer-section.visible{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.answer-label{font-size:11px;font-weight:500;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.answer-text{font-size:14px;line-height:1.8;color:var(--text-primary);background:var(--surface2);padding:12px 16px;border-radius:8px;border-left:3px solid #2d9a5a}
+.reveal-btn{width:100%;padding:11px;margin-top:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;transition:all .15s;font-family:'Noto Sans SC',sans-serif}
+.reveal-btn:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+.action-row{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border);background:var(--surface2)}
+.action-btn{flex:1;padding:9px 12px;border-radius:8px;font-size:13px;font-family:'Noto Sans SC',sans-serif;cursor:pointer;border:1px solid var(--border);transition:all .15s;font-weight:500}
+.btn-wrong{background:white;color:var(--danger);border-color:#f5c8a0}
+.btn-wrong:hover{background:var(--danger-bg);border-color:var(--danger)}
+.btn-right{background:white;color:#2d9a5a;border-color:#b0e0c0}
+.btn-right:hover{background:#e8f8ee;border-color:#2d9a5a}
+.btn-next{background:var(--accent);color:white;border-color:var(--accent);flex:2}
+.btn-next:hover{background:#245280}
+.nav-arrows{display:flex;justify-content:center;gap:12px;margin-top:8px}
+.arrow-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.arrow-btn:hover{border-color:var(--accent);color:var(--accent)}
+.empty-card{background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius);padding:48px 24px;text-align:center}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-title{font-size:16px;font-weight:500;margin-bottom:6px}
+.empty-sub{font-size:13px;color:var(--text-muted)}
+.btn-primary{padding:9px 20px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;transition:background .15s}
+.btn-primary:hover{background:#245280}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.2);width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:500}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);line-height:1;padding:0}
+.modal-body{padding:20px 24px;display:flex;flex-direction:column;gap:14px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-label{font-size:12px;color:var(--text-secondary);font-weight:500}
+.form-input{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans SC',sans-serif;color:var(--text-primary);background:var(--surface);transition:border .15s;resize:vertical}
+.form-input:focus{outline:none;border-color:var(--accent)}
+.form-select{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans SC',sans-serif;background:var(--surface);color:var(--text-primary)}
+.btn-cancel{padding:9px 18px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;color:var(--text-secondary)}
+.btn-submit{padding:9px 18px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif}
+.menu-item{padding:12px 16px;border-radius:8px;cursor:pointer;font-size:14px;transition:background .12s;display:flex;align-items:center;gap:10px}
+.menu-item:hover{background:var(--surface2)}
+.menu-item.danger{color:var(--danger)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1814;color:white;padding:10px 20px;border-radius:8px;font-size:13px;opacity:0;transition:all .25s;z-index:999;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.toast-success{background:#2d7a4a}
+.toast.toast-error{background:#b83020}
+#loading-overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,.7);z-index:500;align-items:center;justify-content:center}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:680px){.outline-panel{display:none}.main{padding:16px}.stats-row .stat-label{display:none}}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay" style="display:none"><div class="spinner"></div></div>
+
+<nav>
+  <div class="nav-logo">📚 刷题本</div>
+</nav>
+
+<div class="subject-bar">
+  <span class="subject-label">科目：</span>
+  <div id="subject-bar-inner" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"></div>
+</div>
+
+<div class="main">
+  <div class="outline-panel">
+    <div class="panel-title">知识点大纲</div>
+    <div id="outline-tree" class="outline-tree"></div>
+  </div>
+  <div class="content-area">
+    <div class="stats-row">
+      <div class="stat-chip"><span class="stat-num blue" id="stat-fresh">0</span><div class="stat-label">未练习</div></div>
+      <div class="stat-chip"><span class="stat-num yellow" id="stat-warn">0</span><div class="stat-label">待巩固</div></div>
+      <div class="stat-chip"><span class="stat-num orange" id="stat-danger">0</span><div class="stat-label">易错题</div></div>
+      <div class="stat-chip"><span class="stat-num green" id="stat-done">0</span><div class="stat-label">已掌握</div></div>
+    </div>
+    <div class="mode-row">
+      <button class="mode-btn active" onclick="setMode('all',this)">顺序练习</button>
+      <button class="mode-btn" onclick="setMode('random',this)">随机刷题</button>
+      <button class="mode-btn" onclick="setMode('wrong',this)">只看错题</button>
+    </div>
+    <div class="progress-row">
+      <span class="progress-info" id="progress-info">第 0 / 0 题</span>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <span class="progress-pct" id="progress-pct">0%</span>
+    </div>
+    <div id="cards-area"></div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="add-subject-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">添加科目</span><button class="modal-close" onclick="closeModal('add-subject-modal')">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">科目名称</label><input class="form-input" id="new-subject-name" placeholder="例：化工经济、仪表自动化"></div>
+    </div>
+    <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('add-subject-modal')">取消</button><button class="btn-submit" onclick="submitAddSubject()">创建</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="add-chapter-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">添加章节</span><button class="modal-close" onclick="closeModal('add-chapter-modal')">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">章节名称</label><input class="form-input" id="new-chapter-name" placeholder="例：第一章·流体力学"></div>
+    </div>
+    <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('add-chapter-modal')">取消</button><button class="btn-submit" onclick="submitAddChapter()">添加</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="add-question-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">添加题目</span><button class="modal-close" onclick="closeModal('add-question-modal')">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">题型</label>
+        <select class="form-select" id="q-type-select" onchange="updateQTypeForm()">
+          <option value="choice">单选题</option><option value="multi">多选题</option>
+          <option value="fill">填空题</option><option value="calc">计算题</option><option value="short">简答题</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">所属章节（可选）</label><select class="form-select" id="q-chapter-select"></select></div>
+      <div class="form-group"><label class="form-label">知识点标签（可选）</label><input class="form-input" id="q-point" placeholder="例：伯努利方程"></div>
+      <div class="form-group"><label class="form-label">题目内容（LaTeX 用 \( \) 包裹）</label><textarea class="form-input" id="q-text" rows="4" placeholder="输入题目..."></textarea></div>
+      <div id="options-section">
+        <div class="form-group"><label class="form-label">选项</label>
+          <input class="form-input" id="q-opt-a" placeholder="A. " style="margin-bottom:6px">
+          <input class="form-input" id="q-opt-b" placeholder="B. " style="margin-bottom:6px">
+          <input class="form-input" id="q-opt-c" placeholder="C. " style="margin-bottom:6px">
+          <input class="form-input" id="q-opt-d" placeholder="D. ">
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">参考答案</label><textarea class="form-input" id="q-answer" rows="3" placeholder="输入答案..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('add-question-modal')">取消</button><button class="btn-submit" onclick="submitAddQuestion()">添加</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="card-menu-modal">
+  <div class="modal" style="max-width:280px">
+    <div class="modal-header"><span class="modal-title">题目操作</span><button class="modal-close" onclick="closeModal('card-menu-modal')">×</button></div>
+    <div class="modal-body" style="padding:12px">
+      <div class="menu-item danger" id="card-menu-delete">🗑 删除这道题</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, deleteDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD-Qn2wVwHT2ibmlK6ke2gw8c8T6mlTEk8",
+  authDomain: "kmkhkr-3607c.firebaseapp.com",
+  projectId: "kmkhkr-3607c",
+  storageBucket: "kmkhkr-3607c.firebasestorage.app",
+  messagingSenderId: "999668984036",
+  appId: "1:999668984036:web:5642da624c80fb707264f1"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let state = {
+  subjects: [], currentSubject: null,
+  chapters: [], currentChapter: null, currentPoint: null,
+  questions: [], currentIndex: 0, mode: 'all'
+};
+
+function $(id){ return document.getElementById(id); }
+
+function errorClass(n){ if(!n||n===0) return 'fresh'; if(n<5) return 'warn'; return 'danger'; }
+
+function qTypeLabel(t){ return {choice:'单选',multi:'多选',fill:'填空',calc:'计算',short:'简答'}[t]||t; }
+function qTypeClass(t){ return {choice:'choice',multi:'choice',fill:'fill',calc:'calc',short:'short'}[t]||'fill'; }
+
+function showToast(msg, type='info'){
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); },2200);
+}
+
+function setLoading(on){ $('loading-overlay').style.display = on?'flex':'none'; }
+
+// ── FIREBASE ──
+async function loadSubjects(){
+  const snap = await getDocs(collection(db,'subjects'));
+  state.subjects = snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderSubjectBar();
+  if(state.subjects.length>0) await selectSubject(state.subjects[0].id);
+  else renderEmptyState();
+}
+
+async function createSubject(name){
+  const ref = await addDoc(collection(db,'subjects'),{name,createdAt:Date.now()});
+  await loadSubjects(); await selectSubject(ref.id);
+}
+
+async function selectSubject(id){
+  state.currentSubject = state.subjects.find(s=>s.id===id);
+  state.currentChapter = null; state.currentPoint = null;
+  renderSubjectBar();
+  await loadChapters(id);
+}
+
+async function loadChapters(subjectId){
+  try{
+    const snap = await getDocs(query(collection(db,'chapters'),where('subjectId','==',subjectId),orderBy('order')));
+    state.chapters = snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){
+    const snap = await getDocs(query(collection(db,'chapters'),where('subjectId','==',subjectId)));
+    state.chapters = snap.docs.map(d=>({id:d.id,...d.data()}));
+  }
+  await loadQuestions();
+  renderOutline();
+}
+
+async function createChapter(name){
+  if(!state.currentSubject) return;
+  await addDoc(collection(db,'chapters'),{subjectId:state.currentSubject.id,name,order:state.chapters.length,createdAt:Date.now()});
+  await loadChapters(state.currentSubject.id);
+}
+
+async function loadQuestions(){
+  if(!state.currentSubject){ state.questions=[]; renderCards(); return; }
+  let snap;
+  if(state.currentPoint){
+    snap = await getDocs(query(collection(db,'questions'),where('subjectId','==',state.currentSubject.id),where('pointId','==',state.currentPoint)));
+  } else if(state.currentChapter){
+    snap = await getDocs(query(collection(db,'questions'),where('subjectId','==',state.currentSubject.id),where('chapterId','==',state.currentChapter)));
+  } else {
+    snap = await getDocs(query(collection(db,'questions'),where('subjectId','==',state.currentSubject.id)));
+  }
+  let qs = snap.docs.map(d=>({id:d.id,...d.data()}));
+  if(state.mode==='wrong') qs = qs.filter(q=>q.errorCount>0);
+  if(state.mode==='random') qs = qs.sort(()=>Math.random()-.5);
+  state.questions = qs; state.currentIndex = 0;
+  renderCards(); renderStats();
+}
+
+async function markQuestion(id, correct){
+  const ref = doc(db,'questions',id);
+  const snap = await getDoc(ref); const data = snap.data();
+  if(correct) await updateDoc(ref,{correctCount:(data.correctCount||0)+1});
+  else await updateDoc(ref,{errorCount:(data.errorCount||0)+1});
+  const q = state.questions.find(q=>q.id===id);
+  if(q){ if(correct) q.correctCount=(q.correctCount||0)+1; else q.errorCount=(q.errorCount||0)+1; }
+  renderCurrentCard(); renderStats();
+}
+
+async function addQuestion(qData){
+  await addDoc(collection(db,'questions'),{
+    subjectId:state.currentSubject.id,
+    chapterId:qData.chapterId||null,
+    pointId:qData.pointId||null,
+    pointName:qData.pointName||'',
+    type:qData.type, question:qData.question,
+    options:qData.options||[], answer:qData.answer,
+    errorCount:0, correctCount:0, createdAt:Date.now()
+  });
+  showToast('题目已添加','success'); await loadQuestions();
+}
+
+async function deleteQuestion(id){
+  await deleteDoc(doc(db,'questions',id));
+  showToast('已删除','info'); await loadQuestions();
+}
+
+// ── RENDER ──
+function renderSubjectBar(){
+  const bar = $('subject-bar-inner'); bar.innerHTML='';
+  state.subjects.forEach(s=>{
+    const chip = document.createElement('div');
+    chip.className='subject-chip'+(state.currentSubject?.id===s.id?' active':'');
+    chip.textContent=s.name; chip.onclick=()=>selectSubject(s.id);
+    bar.appendChild(chip);
+  });
+  const add = document.createElement('div');
+  add.className='subject-chip add-chip'; add.textContent='＋ 添加科目';
+  add.onclick=()=>openModal('add-subject-modal'); bar.appendChild(add);
+}
+
+function renderOutline(){
+  const tree = $('outline-tree'); tree.innerHTML='';
+  if(state.chapters.length===0){
+    tree.innerHTML=`<div style="color:var(--text-muted);font-size:12px;padding:12px 4px">暂无章节</div>`;
+  } else {
+    state.chapters.forEach(ch=>{
+      const wrap = document.createElement('div');
+      const chEl = document.createElement('div');
+      chEl.className='outline-chapter'+(state.currentChapter===ch.id?' active':'');
+      chEl.innerHTML=`<span class="arrow">▶</span> ${ch.name}`;
+      const pts = document.createElement('div');
+      pts.className='outline-points';
+      chEl.onclick=()=>{
+        chEl.classList.toggle('open'); pts.classList.toggle('visible');
+        state.currentChapter=ch.id; state.currentPoint=null;
+        loadQuestions();
+        document.querySelectorAll('.outline-chapter').forEach(c=>{ if(c!==chEl)c.classList.remove('active'); });
+        chEl.classList.add('active');
+      };
+      const pointsInChapter=[...new Map(
+        state.questions.filter(q=>q.chapterId===ch.id&&q.pointName).map(q=>[q.pointId,{id:q.pointId,name:q.pointName}])
+      ).values()];
+      pointsInChapter.forEach(pt=>{
+        const ptEl=document.createElement('div');
+        ptEl.className='outline-point'+(state.currentPoint===pt.id?' active':'');
+        const cnt=state.questions.filter(q=>q.pointId===pt.id).length;
+        ptEl.innerHTML=`${pt.name} <span class="point-count">${cnt}</span>`;
+        ptEl.onclick=e=>{
+          e.stopPropagation();
+          state.currentPoint=pt.id; state.currentChapter=ch.id; loadQuestions();
+          document.querySelectorAll('.outline-point').forEach(p=>p.classList.remove('active'));
+          ptEl.classList.add('active');
+        };
+        pts.appendChild(ptEl);
+      });
+      wrap.appendChild(chEl); wrap.appendChild(pts); tree.appendChild(wrap);
+    });
+  }
+  const addBtn=document.createElement('button');
+  addBtn.className='outline-add-btn'; addBtn.textContent='＋ 添加章节';
+  addBtn.onclick=()=>openAddChapterModal(); tree.appendChild(addBtn);
+}
+
+function renderStats(){
+  const qs=state.questions;
+  $('stat-fresh').textContent=qs.filter(q=>!q.errorCount||q.errorCount===0).length;
+  $('stat-warn').textContent=qs.filter(q=>q.errorCount>=1&&q.errorCount<5).length;
+  $('stat-danger').textContent=qs.filter(q=>q.errorCount>=5).length;
+  $('stat-done').textContent=qs.filter(q=>(q.correctCount||0)>0&&(!q.errorCount||q.errorCount===0)).length;
+  $('progress-info').textContent=`第 ${Math.min(state.currentIndex+1,Math.max(1,qs.length))} / ${qs.length} 题`;
+  const pct=qs.length?Math.round((state.currentIndex/qs.length)*100):0;
+  $('progress-fill').style.width=pct+'%'; $('progress-pct').textContent=pct+'%';
+}
+
+function renderCards(){
+  if(state.questions.length===0){
+    $('cards-area').innerHTML=`
+      <div class="empty-card">
+        <div class="empty-icon">📭</div>
+        <div class="empty-title">暂无题目</div>
+        <div class="empty-sub">点击下方按钮添加第一道题</div>
+        <button class="btn-primary" onclick="window._openAddQ()" style="margin-top:16px">＋ 添加题目</button>
+      </div>`;
+    renderStats(); return;
+  }
+  renderCurrentCard();
+}
+
+function renderCurrentCard(){
+  const q=state.questions[state.currentIndex]; if(!q) return;
+  const ec=errorClass(q.errorCount||0);
+  const badge=q.errorCount>0?`<span class="error-badge">错误 ×${q.errorCount}</span>`:'';
+  let body='';
+  if(q.type==='choice'||q.type==='multi'){
+    const labels=['A','B','C','D','E'];
+    body=`<div class="options-list" id="opts-${q.id}">${(q.options||[]).map((o,i)=>`
+      <div class="option" onclick="window._selectOpt(this,'opts-${q.id}')">
+        <span class="opt-label">${labels[i]}</span> ${o}
+      </div>`).join('')}</div>`;
+  }
+  $('cards-area').innerHTML=`
+    <div class="card ${ec}" id="card-main">
+      <div class="card-header">
+        <span class="q-num">Q·${String(state.currentIndex+1).padStart(3,'0')}</span>
+        <span class="q-type ${qTypeClass(q.type)}">${qTypeLabel(q.type)}</span>
+        ${q.pointName?`<span class="q-topic">知识点：<span>${q.pointName}</span></span>`:''}
+        ${badge}
+        <button class="card-menu-btn" onclick="window._openMenu('${q.id}')">⋯</button>
+      </div>
+      <div class="card-body">
+        <div class="question-text">${q.question}</div>
+        ${body}
+        <div class="answer-section" id="ans-main">
+          <div class="answer-label">参考答案</div>
+          <div class="answer-text">${q.answer}</div>
+        </div>
+        <button class="reveal-btn" id="reveal-btn" onclick="window._reveal()">展开答案 ↓</button>
+      </div>
+      <div class="action-row">
+        <button class="action-btn btn-wrong" onclick="window._mark(false)">✗ 答错了</button>
+        <button class="action-btn btn-right" onclick="window._mark(true)">✓ 答对了</button>
+        <button class="action-btn btn-next" onclick="window._next()">下一题 →</button>
+      </div>
+    </div>
+    <div class="nav-arrows">
+      <button class="arrow-btn" onclick="window._prev()">←</button>
+      <button class="arrow-btn" onclick="window._next()">→</button>
+    </div>
+    <div style="text-align:center;margin-top:16px">
+      <button class="outline-add-btn" onclick="window._openAddQ()">＋ 添加题目</button>
+    </div>`;
+  if(window.MathJax) MathJax.typesetPromise();
+  renderStats();
+}
+
+function renderEmptyState(){
+  $('cards-area').innerHTML=`
+    <div class="empty-card">
+      <div class="empty-icon">📚</div>
+      <div class="empty-title">还没有科目</div>
+      <div class="empty-sub">先添加一个科目开始吧</div>
+      <button class="btn-primary" onclick="openModal('add-subject-modal')" style="margin-top:16px">＋ 添加科目</button>
+    </div>`;
+}
+
+// ── WINDOW ACTIONS (called from inline HTML) ──
+window._reveal=()=>{ $('ans-main').classList.add('visible'); $('reveal-btn').style.display='none'; if(window.MathJax)MathJax.typesetPromise(); };
+window._mark=async(correct)=>{ const q=state.questions[state.currentIndex]; if(!q)return; setLoading(true); await markQuestion(q.id,correct); setLoading(false); showToast(correct?'✓ 已标记答对':'✗ 已标记答错',correct?'success':'error'); setTimeout(()=>window._next(),400); };
+window._next=()=>{ if(state.currentIndex<state.questions.length-1){state.currentIndex++;renderCurrentCard();}else{showToast('已是最后一题 🎉','success');} };
+window._prev=()=>{ if(state.currentIndex>0){state.currentIndex--;renderCurrentCard();} };
+window._selectOpt=(el,gid)=>{ document.getElementById(gid)?.querySelectorAll('.option').forEach(o=>o.classList.remove('selected')); el.classList.add('selected'); };
+window._openMenu=(qid)=>{ openModal('card-menu-modal'); $('card-menu-delete').onclick=async()=>{ closeModal('card-menu-modal'); setLoading(true); await deleteQuestion(qid); setLoading(false); }; };
+window._openAddQ=()=>openAddQuestionModal();
+
+// ── MODAL HELPERS ──
+window.openModal=(id)=>$(id).classList.add('open');
+window.closeModal=(id)=>$(id).classList.remove('open');
+
+window.openAddChapterModal=()=>{ if(!state.currentSubject){showToast('请先选择科目','error');return;} openModal('add-chapter-modal'); };
+
+window.openAddQuestionModal=()=>{
+  if(!state.currentSubject){showToast('请先选择科目','error');return;}
+  const sel=$('q-chapter-select'); sel.innerHTML='<option value="">-- 不分章节 --</option>';
+  state.chapters.forEach(ch=>{ const o=document.createElement('option'); o.value=ch.id; o.textContent=ch.name; sel.appendChild(o); });
+  $('q-type-select').value='choice'; updateQTypeForm();
+  openModal('add-question-modal');
+};
+
+window.updateQTypeForm=()=>{
+  const t=$('q-type-select').value;
+  $('options-section').style.display=(t==='choice'||t==='multi')?'block':'none';
+};
+
+window.submitAddSubject=async()=>{
+  const name=$('new-subject-name').value.trim(); if(!name){showToast('请输入科目名称','error');return;}
+  setLoading(true); await createSubject(name); setLoading(false);
+  $('new-subject-name').value=''; closeModal('add-subject-modal'); showToast('科目已创建','success');
+};
+
+window.submitAddChapter=async()=>{
+  const name=$('new-chapter-name').value.trim(); if(!name){showToast('请输入章节名称','error');return;}
+  setLoading(true); await createChapter(name); setLoading(false);
+  $('new-chapter-name').value=''; closeModal('add-chapter-modal'); showToast('章节已添加','success');
+};
+
+window.submitAddQuestion=async()=>{
+  const type=$('q-type-select').value;
+  const question=$('q-text').value.trim();
+  const answer=$('q-answer').value.trim();
+  const pointName=$('q-point').value.trim();
+  const chapterId=$('q-chapter-select').value||null;
+  if(!question||!answer){showToast('题目和答案不能为空','error');return;}
+  let options=[];
+  if(type==='choice'||type==='multi'){
+    options=['q-opt-a','q-opt-b','q-opt-c','q-opt-d'].map(id=>$(id).value.trim()).filter(Boolean);
+    if(options.length<2){showToast('选择题至少需要2个选项','error');return;}
+  }
+  setLoading(true);
+  await addQuestion({type,question,answer,options,pointName,chapterId,pointId:pointName?pointName.replace(/\s/g,'_'):null});
+  setLoading(false);
+  ['q-text','q-answer','q-point','q-opt-a','q-opt-b','q-opt-c','q-opt-d'].forEach(id=>{if($(id))$(id).value='';});
+  closeModal('add-question-modal');
+};
+
+window.setMode=(mode,el)=>{
+  state.mode=mode;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); loadQuestions();
+};
+
+// ── INIT ──
+setLoading(true);
+loadSubjects().then(()=>setLoading(false)).catch(e=>{
+  console.error(e); setLoading(false);
+  showToast('数据库连接失败，请检查网络','error');
+});
+</script>
+</body>
+</html>
