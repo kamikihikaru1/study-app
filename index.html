@@ -82,6 +82,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
 .card-menu-btn:hover{color:var(--text-primary)}
 .card-body{padding:20px}
 .question-text{font-size:15px;line-height:1.75;color:var(--text-primary);margin-bottom:16px;font-family:'Noto Serif SC',serif}
+.question-text img{max-width:100%;border-radius:8px;margin:8px 0}
 .options-list{display:flex;flex-direction:column;gap:8px;margin-bottom:4px}
 .option{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:all .15s;font-size:14px;line-height:1.6}
 .option:hover{border-color:var(--accent);background:var(--accent-light)}
@@ -92,6 +93,8 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .answer-label{font-size:11px;font-weight:500;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
 .answer-text{font-size:14px;line-height:1.8;color:var(--text-primary);background:var(--surface2);padding:12px 16px;border-radius:8px;border-left:3px solid #2d9a5a}
+.explanation-text{font-size:13px;line-height:1.8;color:var(--text-secondary);background:#f8f6f2;padding:12px 16px;border-radius:8px;border-left:3px solid var(--accent);margin-top:10px}
+.explanation-label{font-size:11px;font-weight:500;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;margin-top:14px}
 .reveal-btn{width:100%;padding:11px;margin-top:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;transition:all .15s;font-family:'Noto Sans SC',sans-serif}
 .reveal-btn:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
 .action-row{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border);background:var(--surface2)}
@@ -136,7 +139,38 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
 #loading-overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,.7);z-index:500;align-items:center;justify-content:center}
 .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:680px){.outline-panel{display:none}.main{padding:16px}.stats-row .stat-label{display:none}}
+
+/* ── 批量导入专用样式 ── */
+.import-modal .modal{max-width:600px}
+.import-textarea{min-height:280px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;resize:vertical}
+.import-help{background:var(--accent-light);border:1px solid #c0d8f0;border-radius:8px;padding:12px 14px;font-size:12px;color:#2c5f8a;line-height:1.8}
+.import-help code{background:rgba(44,95,138,.15);padding:1px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:11px}
+.preview-section{margin-top:4px}
+.preview-title{font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.preview-badge{background:var(--accent);color:white;font-size:11px;padding:1px 7px;border-radius:10px}
+.preview-list{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto}
+.preview-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6}
+.preview-item-type{display:inline-block;font-size:10px;padding:1px 7px;border-radius:4px;font-weight:500;margin-right:6px;vertical-align:middle}
+.preview-item-type.choice{background:#e8f4fd;color:#1a6fa0}
+.preview-item-type.multi{background:#e8f0fd;color:#3a1aa0}
+.preview-item-type.fill{background:#e8f8ee;color:#1a7a40}
+.preview-item-type.calc{background:#f3e8fd;color:#6a1aa0}
+.preview-item-type.short{background:#fdf3e8;color:#a05a1a}
+.preview-item-q{color:var(--text-primary);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.preview-item-ans{color:var(--text-muted);margin-top:2px}
+.preview-error{background:#fdf0e8;border-color:#f5c8a0;color:var(--danger)}
+.import-btn-parse{padding:9px 18px;background:#f0ede8;border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;color:var(--text-secondary);transition:all .15s}
+.import-btn-parse:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+
+/* ── 编辑modal章节下拉框 ── */
+.modal-wide{max-width:560px}
+
+@media(max-width:680px){
+  .outline-panel{display:none}
+  .main{padding:16px}
+  .stats-row .stat-label{display:none}
+  .import-modal .modal{max-width:100%}
+}
 </style>
 </head>
 <body>
@@ -178,7 +212,9 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
   </div>
 </div>
 
-<!-- MODALS -->
+<!-- ══ MODALS ══ -->
+
+<!-- 添加科目 -->
 <div class="modal-overlay" id="add-subject-modal">
   <div class="modal">
     <div class="modal-header"><span class="modal-title">添加科目</span><button class="modal-close" onclick="closeModal('add-subject-modal')">×</button></div>
@@ -189,6 +225,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
   </div>
 </div>
 
+<!-- 添加章节 -->
 <div class="modal-overlay" id="add-chapter-modal">
   <div class="modal">
     <div class="modal-header"><span class="modal-title">添加章节</span><button class="modal-close" onclick="closeModal('add-chapter-modal')">×</button></div>
@@ -199,8 +236,9 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
   </div>
 </div>
 
+<!-- 添加题目（手动） -->
 <div class="modal-overlay" id="add-question-modal">
-  <div class="modal">
+  <div class="modal modal-wide">
     <div class="modal-header"><span class="modal-title">添加题目</span><button class="modal-close" onclick="closeModal('add-question-modal')">×</button></div>
     <div class="modal-body">
       <div class="form-group"><label class="form-label">题型</label>
@@ -211,7 +249,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
       </div>
       <div class="form-group"><label class="form-label">所属章节（可选）</label><select class="form-select" id="q-chapter-select"></select></div>
       <div class="form-group"><label class="form-label">知识点标签（可选）</label><input class="form-input" id="q-point" placeholder="例：伯努利方程"></div>
-      <div class="form-group"><label class="form-label">题目内容（LaTeX 用 \( \) 包裹）</label><textarea class="form-input" id="q-text" rows="4" placeholder="输入题目..."></textarea></div>
+      <div class="form-group"><label class="form-label">题目内容（LaTeX 用 \( \) 或 \[ \] 包裹；图片用 &lt;img src="URL"&gt;）</label><textarea class="form-input" id="q-text" rows="4" placeholder="输入题目..."></textarea></div>
       <div id="options-section">
         <div class="form-group"><label class="form-label">选项</label>
           <input class="form-input" id="q-opt-a" placeholder="A. " style="margin-bottom:6px">
@@ -220,45 +258,100 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
           <input class="form-input" id="q-opt-d" placeholder="D. ">
         </div>
       </div>
-      <div class="form-group"><label class="form-label">参考答案</label><textarea class="form-input" id="q-answer" rows="3" placeholder="输入答案..."></textarea></div>
+      <div class="form-group"><label class="form-label">参考答案</label><textarea class="form-input" id="q-answer" rows="2" placeholder="输入答案..."></textarea></div>
+      <div class="form-group"><label class="form-label">解析（可选）</label><textarea class="form-input" id="q-explanation" rows="3" placeholder="输入解题思路或解析..."></textarea></div>
     </div>
     <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('add-question-modal')">取消</button><button class="btn-submit" onclick="submitAddQuestion()">添加</button></div>
   </div>
 </div>
 
-<div class="modal-overlay" id="card-menu-modal">
-  <div class="modal-overlay" id="import-modal">
-  <div class="modal">
+<!-- 编辑题目 -->
+<div class="modal-overlay" id="edit-question-modal">
+  <div class="modal modal-wide">
+    <div class="modal-header"><span class="modal-title">✏️ 编辑题目</span><button class="modal-close" onclick="closeModal('edit-question-modal')">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">题型</label>
+        <select class="form-select" id="eq-type-select" onchange="updateEditQTypeForm()">
+          <option value="choice">单选题</option><option value="multi">多选题</option>
+          <option value="fill">填空题</option><option value="calc">计算题</option><option value="short">简答题</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">所属章节</label><select class="form-select" id="eq-chapter-select"></select></div>
+      <div class="form-group"><label class="form-label">知识点标签</label><input class="form-input" id="eq-point" placeholder="例：伯努利方程"></div>
+      <div class="form-group"><label class="form-label">题目内容</label><textarea class="form-input" id="eq-text" rows="4"></textarea></div>
+      <div id="edit-options-section">
+        <div class="form-group"><label class="form-label">选项</label>
+          <input class="form-input" id="eq-opt-a" placeholder="A. " style="margin-bottom:6px">
+          <input class="form-input" id="eq-opt-b" placeholder="B. " style="margin-bottom:6px">
+          <input class="form-input" id="eq-opt-c" placeholder="C. " style="margin-bottom:6px">
+          <input class="form-input" id="eq-opt-d" placeholder="D. ">
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">参考答案</label><textarea class="form-input" id="eq-answer" rows="2"></textarea></div>
+      <div class="form-group"><label class="form-label">解析（可选）</label><textarea class="form-input" id="eq-explanation" rows="3" placeholder="输入解题思路或解析..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('edit-question-modal')">取消</button><button class="btn-submit" onclick="submitEditQuestion()">保存修改</button></div>
+  </div>
+</div>
+
+<!-- 批量导入 -->
+<div class="modal-overlay import-modal" id="import-modal">
+  <div class="modal" style="max-width:600px">
     <div class="modal-header">
-      <span class="modal-title">文本导入题目</span>
+      <span class="modal-title">📥 文本批量导入</span>
       <button class="modal-close" onclick="closeModal('import-modal')">×</button>
     </div>
     <div class="modal-body">
+      <div class="import-help">
+        <strong>格式说明</strong>（题目间用 <code>---</code> 分隔）：<br>
+        <code>#单选题</code> / <code>#多选题</code> / <code>#填空题</code> / <code>#计算题</code> / <code>#简答题</code><br>
+        <code>题目：</code> 题目内容（支持 LaTeX 和 &lt;img src="URL"&gt;）<br>
+        <code>A.</code> <code>B.</code> <code>C.</code> <code>D.</code> 选项（选择题）<br>
+        <code>答案：</code> 答案内容 &nbsp; <code>解析：</code> 解题思路（可选）
+      </div>
       <div class="form-group">
-        <label class="form-label">粘贴题目（用 ==== 分隔多题）</label>
-        <textarea class="form-input" id="import-text" rows="10"
-        placeholder="示例：
-某流体流速是多少？
-A. 1 m/s
-B. 2 m/s
-C. 3 m/s
-D. 4 m/s
-答案：B
+        <label class="form-label">所属章节（可选，导入后可单独修改）</label>
+        <select class="form-select" id="import-chapter-select"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">粘贴题目文本</label>
+        <textarea class="form-input import-textarea" id="import-textarea" placeholder="#单选题
+题目：计算 \( \int x \, dx \) 的结果是？
+A. x
+B. x²
+C. x²/2 + C
+D. 2x
+答案：C
+解析：基础积分公式，幂函数积分。
 
-====
+---
 
-下一题..."></textarea>
+#填空题
+题目：伯努利方程为 ______
+答案：\( p + \frac{1}{2}\rho v^2 + \rho g h = \text{常数} \)
+解析：能量守恒在流体中的体现。"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="import-btn-parse" onclick="previewImport()">🔍 解析预览</button>
+      </div>
+      <div class="preview-section" id="import-preview" style="display:none">
+        <div class="preview-title">解析结果 <span class="preview-badge" id="preview-count">0 题</span></div>
+        <div class="preview-list" id="preview-list"></div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal('import-modal')">取消</button>
-      <button class="btn-submit" onclick="submitImport()">导入</button>
+      <button class="btn-submit" id="import-confirm-btn" onclick="confirmBatchImport()" style="display:none">✅ 确认导入</button>
     </div>
   </div>
 </div>
+
+<!-- 题目菜单 -->
+<div class="modal-overlay" id="card-menu-modal">
   <div class="modal" style="max-width:280px">
     <div class="modal-header"><span class="modal-title">题目操作</span><button class="modal-close" onclick="closeModal('card-menu-modal')">×</button></div>
     <div class="modal-body" style="padding:12px">
+      <div class="menu-item" id="card-menu-edit">✏️ 编辑这道题</div>
       <div class="menu-item danger" id="card-menu-delete">🗑 删除这道题</div>
     </div>
   </div>
@@ -283,13 +376,13 @@ const db = getFirestore(app);
 let state = {
   subjects: [], currentSubject: null,
   chapters: [], currentChapter: null, currentPoint: null,
-  questions: [], currentIndex: 0, mode: 'all'
+  questions: [], currentIndex: 0, mode: 'all',
+  editingId: null,
+  pendingImport: []
 };
 
 function $(id){ return document.getElementById(id); }
-
 function errorClass(n){ if(!n||n===0) return 'fresh'; if(n<5) return 'warn'; return 'danger'; }
-
 function qTypeLabel(t){ return {choice:'单选',multi:'多选',fill:'填空',calc:'计算',short:'简答'}[t]||t; }
 function qTypeClass(t){ return {choice:'choice',multi:'choice',fill:'fill',calc:'calc',short:'short'}[t]||'fill'; }
 
@@ -298,12 +391,136 @@ function showToast(msg, type='info'){
   t.className = `toast toast-${type}`; t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(()=>t.classList.add('show'),10);
-  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); },2200);
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); },2800);
 }
 
 function setLoading(on){ $('loading-overlay').style.display = on?'flex':'none'; }
 
-// ── FIREBASE ──
+// ══════════════════════════════════════════
+//  PARSE QUESTIONS  核心解析函数
+// ══════════════════════════════════════════
+function parseQuestions(text) {
+  // 按 --- 分割（支持前后有空格/换行）
+  const blocks = text.split(/\n\s*---\s*\n/);
+  const results = [];
+
+  // 题型映射
+  const typeMap = {
+    '单选题': 'choice', '多选题': 'multi',
+    '填空题': 'fill',   '计算题': 'calc',
+    '简答题': 'short'
+  };
+
+  for (const rawBlock of blocks) {
+    const block = rawBlock.trim();
+    if (!block) continue;
+
+    const lines = block.split('\n');
+    let type = '';
+    let question = '';
+    let options = [];
+    let answer = '';
+    let explanation = '';
+    let pointName = '';
+    let currentField = '';  // 追踪当前多行字段
+    let currentContent = [];
+
+    // 辅助：提取字段内容（支持同行或下一行）
+    const flushField = () => {
+      if (currentField === 'question') question = currentContent.join('\n').trim();
+      else if (currentField === 'answer') answer = currentContent.join('\n').trim();
+      else if (currentField === 'explanation') explanation = currentContent.join('\n').trim();
+      else if (currentField === 'point') pointName = currentContent.join('\n').trim();
+      currentField = '';
+      currentContent = [];
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      // 题型行  #单选题
+      if (trimmed.startsWith('#')) {
+        const typeName = trimmed.replace(/^#+\s*/, '').trim();
+        type = typeMap[typeName] || '';
+        flushField();
+        continue;
+      }
+
+      // 题目行
+      const qMatch = trimmed.match(/^题目[：:]\s*(.*)/);
+      if (qMatch) {
+        flushField();
+        currentField = 'question';
+        currentContent = [qMatch[1]];
+        continue;
+      }
+
+      // 知识点行
+      const ptMatch = trimmed.match(/^知识点[：:]\s*(.*)/);
+      if (ptMatch) {
+        flushField();
+        currentField = 'point';
+        currentContent = [ptMatch[1]];
+        continue;
+      }
+
+      // 选项行 支持 A. A、A） A:
+      const optMatch = trimmed.match(/^([A-Ea-e])[.、）)：:]\s*(.*)/);
+      if (optMatch) {
+        flushField();
+        options.push(optMatch[2].trim());
+        continue;
+      }
+
+      // 答案行
+      const ansMatch = trimmed.match(/^答案[：:]\s*(.*)/);
+      if (ansMatch) {
+        flushField();
+        currentField = 'answer';
+        currentContent = [ansMatch[1]];
+        continue;
+      }
+
+      // 解析行
+      const expMatch = trimmed.match(/^解[析题][：:]\s*(.*)/);
+      if (expMatch) {
+        flushField();
+        currentField = 'explanation';
+        currentContent = [expMatch[1]];
+        continue;
+      }
+
+      // 继续拼接当前多行字段（支持 LaTeX 换行）
+      if (currentField && trimmed !== '') {
+        currentContent.push(trimmed);
+      }
+    }
+    flushField();
+
+    // 自动识别多选答案（如 AB、ABC）
+    if (!type && answer.match(/^[A-E]{2,}$/)) {
+      type = 'multi';
+    }
+
+    // 跳过空题
+    if (!question && !answer) continue;
+
+    // 默认题型
+    if (!type) {
+      if (options.length >= 2) type = 'choice';
+      else type = 'fill';
+    }
+
+    results.push({ type, question, options, answer, explanation, pointName });
+  }
+
+  return results;
+}
+
+// ══════════════════════════════════════════
+//  FIREBASE CRUD
+// ══════════════════════════════════════════
 async function loadSubjects(){
   const snap = await getDocs(collection(db,'subjects'));
   state.subjects = snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -371,15 +588,31 @@ async function markQuestion(id, correct){
 
 async function addQuestion(qData){
   await addDoc(collection(db,'questions'),{
-    subjectId:state.currentSubject.id,
-    chapterId:qData.chapterId||null,
-    pointId:qData.pointId||null,
-    pointName:qData.pointName||'',
-    type:qData.type, question:qData.question,
-    options:qData.options||[], answer:qData.answer,
-    errorCount:0, correctCount:0, createdAt:Date.now()
+    subjectId: state.currentSubject.id,
+    chapterId: qData.chapterId||null,
+    pointId: qData.pointId||null,
+    pointName: qData.pointName||'',
+    type: qData.type,
+    question: qData.question,
+    options: qData.options||[],
+    answer: qData.answer,
+    explanation: qData.explanation||'',   // ← 新增字段
+    errorCount: 0, correctCount: 0, createdAt: Date.now()
   });
-  showToast('题目已添加','success'); await loadQuestions();
+}
+
+async function updateQuestion(id, data){
+  const ref = doc(db,'questions',id);
+  await updateDoc(ref,{
+    type: data.type,
+    question: data.question,
+    options: data.options||[],
+    answer: data.answer,
+    explanation: data.explanation||'',
+    chapterId: data.chapterId||null,
+    pointId: data.pointId||null,
+    pointName: data.pointName||''
+  });
 }
 
 async function deleteQuestion(id){
@@ -387,7 +620,92 @@ async function deleteQuestion(id){
   showToast('已删除','info'); await loadQuestions();
 }
 
-// ── RENDER ──
+// ══════════════════════════════════════════
+//  BATCH IMPORT
+// ══════════════════════════════════════════
+window.previewImport = () => {
+  const text = $('import-textarea').value.trim();
+  if(!text){ showToast('请先粘贴题目文本','error'); return; }
+  
+  const parsed = parseQuestions(text);
+  state.pendingImport = parsed;
+  
+  const previewSection = $('import-preview');
+  const previewList = $('preview-list');
+  const countBadge = $('preview-count');
+  const confirmBtn = $('import-confirm-btn');
+  
+  previewSection.style.display = 'block';
+  countBadge.textContent = `${parsed.length} 题`;
+  previewList.innerHTML = '';
+  
+  if(parsed.length === 0){
+    previewList.innerHTML = `<div class="preview-item preview-error">⚠️ 未识别到有效题目，请检查格式</div>`;
+    confirmBtn.style.display = 'none';
+    return;
+  }
+  
+  parsed.forEach((q, i) => {
+    const item = document.createElement('div');
+    item.className = 'preview-item';
+    const qText = q.question.replace(/<[^>]*>/g,'').substring(0,60);
+    item.innerHTML = `
+      <div class="preview-item-q">
+        <span class="preview-item-type ${q.type}">${qTypeLabel(q.type)}</span>
+        ${i+1}. ${qText}${q.question.length>60?'…':''}
+      </div>
+      <div class="preview-item-ans">答案：${q.answer.substring(0,50)}${q.answer.length>50?'…':''}</div>
+    `;
+    previewList.appendChild(item);
+  });
+  
+  confirmBtn.style.display = 'block';
+};
+
+window.confirmBatchImport = async () => {
+  if(!state.currentSubject){ showToast('请先选择科目','error'); return; }
+  const parsed = state.pendingImport;
+  if(!parsed || parsed.length===0){ showToast('没有可导入的题目','error'); return; }
+  
+  const chapterId = $('import-chapter-select').value || null;
+  const chapterName = chapterId ? state.chapters.find(c=>c.id===chapterId)?.name||'' : '';
+  
+  closeModal('import-modal');
+  setLoading(true);
+  
+  let successCount = 0;
+  for(const q of parsed){
+    try{
+      await addQuestion({
+        type: q.type,
+        question: q.question,
+        options: q.options,
+        answer: q.answer,
+        explanation: q.explanation||'',
+        pointName: q.pointName||'',
+        pointId: q.pointName ? q.pointName.replace(/\s/g,'_') : null,
+        chapterId: chapterId
+      });
+      successCount++;
+    } catch(e){
+      console.error('导入失败:', e, q);
+    }
+  }
+  
+  setLoading(false);
+  await loadQuestions();
+  showToast(`✅ 成功导入 ${successCount} 道题`, 'success');
+  
+  // 清空状态
+  $('import-textarea').value = '';
+  $('import-preview').style.display = 'none';
+  $('import-confirm-btn').style.display = 'none';
+  state.pendingImport = [];
+};
+
+// ══════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════
 function renderSubjectBar(){
   const bar = $('subject-bar-inner'); bar.innerHTML='';
   state.subjects.forEach(s=>{
@@ -461,8 +779,11 @@ function renderCards(){
       <div class="empty-card">
         <div class="empty-icon">📭</div>
         <div class="empty-title">暂无题目</div>
-        <div class="empty-sub">点击下方按钮添加第一道题</div>
-        <button class="btn-primary" onclick="window._openAddQ()" style="margin-top:16px">＋ 添加题目</button>
+        <div class="empty-sub">手动添加或使用文本批量导入</div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap">
+          <button class="btn-primary" onclick="window._openAddQ()">＋ 添加题目</button>
+          <button class="btn-primary" style="background:#2d7a4a" onclick="window._openImport()">📥 文本导入</button>
+        </div>
       </div>`;
     renderStats(); return;
   }
@@ -481,6 +802,12 @@ function renderCurrentCard(){
         <span class="opt-label">${labels[i]}</span> ${o}
       </div>`).join('')}</div>`;
   }
+  
+  // 解析区域（包含解析字段）
+  const explanationHtml = (q.explanation||'').trim()
+    ? `<div class="explanation-label">解析</div><div class="explanation-text">${q.explanation}</div>`
+    : '';
+
   $('cards-area').innerHTML=`
     <div class="card ${ec}" id="card-main">
       <div class="card-header">
@@ -496,6 +823,7 @@ function renderCurrentCard(){
         <div class="answer-section" id="ans-main">
           <div class="answer-label">参考答案</div>
           <div class="answer-text">${q.answer}</div>
+          ${explanationHtml}
         </div>
         <button class="reveal-btn" id="reveal-btn" onclick="window._reveal()">展开答案 ↓</button>
       </div>
@@ -509,9 +837,9 @@ function renderCurrentCard(){
       <button class="arrow-btn" onclick="window._prev()">←</button>
       <button class="arrow-btn" onclick="window._next()">→</button>
     </div>
-    <div style="text-align:center;margin-top:16px">
+    <div style="text-align:center;margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
       <button class="outline-add-btn" onclick="window._openAddQ()">＋ 添加题目</button>
-      <button class="outline-add-btn" onclick="window.openImportModal()">📥 文本导入</button>
+      <button class="outline-add-btn" style="border-color:#2d7a4a;color:#2d7a4a" onclick="window._openImport()">📥 文本导入</button>
     </div>`;
   if(window.MathJax) MathJax.typesetPromise();
   renderStats();
@@ -527,27 +855,133 @@ function renderEmptyState(){
     </div>`;
 }
 
-// ── WINDOW ACTIONS (called from inline HTML) ──
-window._reveal=()=>{ $('ans-main').classList.add('visible'); $('reveal-btn').style.display='none'; if(window.MathJax)MathJax.typesetPromise(); };
-window._mark=async(correct)=>{ const q=state.questions[state.currentIndex]; if(!q)return; setLoading(true); await markQuestion(q.id,correct); setLoading(false); showToast(correct?'✓ 已标记答对':'✗ 已标记答错',correct?'success':'error'); setTimeout(()=>window._next(),400); };
-window._next=()=>{ if(state.currentIndex<state.questions.length-1){state.currentIndex++;renderCurrentCard();}else{showToast('已是最后一题 🎉','success');} };
-window._prev=()=>{ if(state.currentIndex>0){state.currentIndex--;renderCurrentCard();} };
-window._selectOpt=(el,gid)=>{ document.getElementById(gid)?.querySelectorAll('.option').forEach(o=>o.classList.remove('selected')); el.classList.add('selected'); };
-window._openMenu=(qid)=>{ openModal('card-menu-modal'); $('card-menu-delete').onclick=async()=>{ closeModal('card-menu-modal'); setLoading(true); await deleteQuestion(qid); setLoading(false); }; };
+// ══════════════════════════════════════════
+//  WINDOW ACTIONS
+// ══════════════════════════════════════════
+window._reveal=()=>{
+  $('ans-main').classList.add('visible');
+  $('reveal-btn').style.display='none';
+  if(window.MathJax) MathJax.typesetPromise();
+};
+
+window._mark=async(correct)=>{
+  const q=state.questions[state.currentIndex]; if(!q)return;
+  setLoading(true); await markQuestion(q.id,correct); setLoading(false);
+  showToast(correct?'✓ 已标记答对':'✗ 已标记答错',correct?'success':'error');
+  setTimeout(()=>window._next(),400);
+};
+
+window._next=()=>{
+  if(state.currentIndex<state.questions.length-1){ state.currentIndex++; renderCurrentCard(); }
+  else{ showToast('已是最后一题 🎉','success'); }
+};
+
+window._prev=()=>{
+  if(state.currentIndex>0){ state.currentIndex--; renderCurrentCard(); }
+};
+
+window._selectOpt=(el,gid)=>{
+  document.getElementById(gid)?.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+};
+
+window._openMenu=(qid)=>{
+  openModal('card-menu-modal');
+  $('card-menu-edit').onclick=()=>{ closeModal('card-menu-modal'); window._openEdit(qid); };
+  $('card-menu-delete').onclick=async()=>{ closeModal('card-menu-modal'); setLoading(true); await deleteQuestion(qid); setLoading(false); };
+};
+
 window._openAddQ=()=>openAddQuestionModal();
+window._openImport=()=>openImportModal();
+
+// ── 编辑题目 ──
+window._openEdit=(qid)=>{
+  const q = state.questions.find(x=>x.id===qid);
+  if(!q){ showToast('找不到题目','error'); return; }
+  state.editingId = qid;
+
+  // 填充章节下拉
+  const sel = $('eq-chapter-select');
+  sel.innerHTML='<option value="">-- 不分章节 --</option>';
+  state.chapters.forEach(ch=>{
+    const o=document.createElement('option');
+    o.value=ch.id; o.textContent=ch.name;
+    if(ch.id===q.chapterId) o.selected=true;
+    sel.appendChild(o);
+  });
+
+  $('eq-type-select').value = q.type||'choice';
+  updateEditQTypeForm();
+  $('eq-text').value = q.question||'';
+  $('eq-answer').value = q.answer||'';
+  $('eq-explanation').value = q.explanation||'';
+  $('eq-point').value = q.pointName||'';
+
+  const opts = q.options||[];
+  ['eq-opt-a','eq-opt-b','eq-opt-c','eq-opt-d'].forEach((id,i)=>{
+    if($(id)) $(id).value = opts[i]||'';
+  });
+
+  openModal('edit-question-modal');
+};
+
+window.submitEditQuestion=async()=>{
+  const id = state.editingId; if(!id){ showToast('错误：没有编辑目标','error'); return; }
+  const type = $('eq-type-select').value;
+  const question = $('eq-text').value.trim();
+  const answer = $('eq-answer').value.trim();
+  const explanation = $('eq-explanation').value.trim();
+  const pointName = $('eq-point').value.trim();
+  const chapterId = $('eq-chapter-select').value||null;
+
+  if(!question||!answer){ showToast('题目和答案不能为空','error'); return; }
+
+  let options=[];
+  if(type==='choice'||type==='multi'){
+    options=['eq-opt-a','eq-opt-b','eq-opt-c','eq-opt-d'].map(id=>$(id).value.trim()).filter(Boolean);
+    if(options.length<2){ showToast('选择题至少需要2个选项','error'); return; }
+  }
+
+  setLoading(true);
+  await updateQuestion(id,{
+    type, question, options, answer, explanation,
+    pointName, pointId: pointName?pointName.replace(/\s/g,'_'):null,
+    chapterId
+  });
+  setLoading(false);
+  closeModal('edit-question-modal');
+  showToast('题目已更新','success');
+  await loadQuestions();
+};
 
 // ── MODAL HELPERS ──
 window.openModal=(id)=>$(id).classList.add('open');
 window.closeModal=(id)=>$(id).classList.remove('open');
 
-window.openAddChapterModal=()=>{ if(!state.currentSubject){showToast('请先选择科目','error');return;} openModal('add-chapter-modal'); };
+window.openAddChapterModal=()=>{
+  if(!state.currentSubject){ showToast('请先选择科目','error'); return; }
+  openModal('add-chapter-modal');
+};
 
 window.openAddQuestionModal=()=>{
-  if(!state.currentSubject){showToast('请先选择科目','error');return;}
+  if(!state.currentSubject){ showToast('请先选择科目','error'); return; }
   const sel=$('q-chapter-select'); sel.innerHTML='<option value="">-- 不分章节 --</option>';
-  state.chapters.forEach(ch=>{ const o=document.createElement('option'); o.value=ch.id; o.textContent=ch.name; sel.appendChild(o); });
+  state.chapters.forEach(ch=>{
+    const o=document.createElement('option'); o.value=ch.id; o.textContent=ch.name; sel.appendChild(o);
+  });
   $('q-type-select').value='choice'; updateQTypeForm();
   openModal('add-question-modal');
+};
+
+window.openImportModal=()=>{
+  if(!state.currentSubject){ showToast('请先选择科目','error'); return; }
+  const sel=$('import-chapter-select'); sel.innerHTML='<option value="">-- 不分章节 --</option>';
+  state.chapters.forEach(ch=>{
+    const o=document.createElement('option'); o.value=ch.id; o.textContent=ch.name; sel.appendChild(o);
+  });
+  $('import-preview').style.display='none';
+  $('import-confirm-btn').style.display='none';
+  openModal('import-modal');
 };
 
 window.updateQTypeForm=()=>{
@@ -555,14 +989,19 @@ window.updateQTypeForm=()=>{
   $('options-section').style.display=(t==='choice'||t==='multi')?'block':'none';
 };
 
+window.updateEditQTypeForm=()=>{
+  const t=$('eq-type-select').value;
+  $('edit-options-section').style.display=(t==='choice'||t==='multi')?'block':'none';
+};
+
 window.submitAddSubject=async()=>{
-  const name=$('new-subject-name').value.trim(); if(!name){showToast('请输入科目名称','error');return;}
+  const name=$('new-subject-name').value.trim(); if(!name){ showToast('请输入科目名称','error'); return; }
   setLoading(true); await createSubject(name); setLoading(false);
   $('new-subject-name').value=''; closeModal('add-subject-modal'); showToast('科目已创建','success');
 };
 
 window.submitAddChapter=async()=>{
-  const name=$('new-chapter-name').value.trim(); if(!name){showToast('请输入章节名称','error');return;}
+  const name=$('new-chapter-name').value.trim(); if(!name){ showToast('请输入章节名称','error'); return; }
   setLoading(true); await createChapter(name); setLoading(false);
   $('new-chapter-name').value=''; closeModal('add-chapter-modal'); showToast('章节已添加','success');
 };
@@ -571,19 +1010,22 @@ window.submitAddQuestion=async()=>{
   const type=$('q-type-select').value;
   const question=$('q-text').value.trim();
   const answer=$('q-answer').value.trim();
+  const explanation=$('q-explanation').value.trim();
   const pointName=$('q-point').value.trim();
   const chapterId=$('q-chapter-select').value||null;
-  if(!question||!answer){showToast('题目和答案不能为空','error');return;}
+  if(!question||!answer){ showToast('题目和答案不能为空','error'); return; }
   let options=[];
   if(type==='choice'||type==='multi'){
     options=['q-opt-a','q-opt-b','q-opt-c','q-opt-d'].map(id=>$(id).value.trim()).filter(Boolean);
-    if(options.length<2){showToast('选择题至少需要2个选项','error');return;}
+    if(options.length<2){ showToast('选择题至少需要2个选项','error'); return; }
   }
   setLoading(true);
-  await addQuestion({type,question,answer,options,pointName,chapterId,pointId:pointName?pointName.replace(/\s/g,'_'):null});
+  await addQuestion({type,question,answer,explanation,options,pointName,chapterId,pointId:pointName?pointName.replace(/\s/g,'_'):null});
   setLoading(false);
-  ['q-text','q-answer','q-point','q-opt-a','q-opt-b','q-opt-c','q-opt-d'].forEach(id=>{if($(id))$(id).value='';});
+  ['q-text','q-answer','q-explanation','q-point','q-opt-a','q-opt-b','q-opt-c','q-opt-d'].forEach(id=>{if($(id))$(id).value='';});
   closeModal('add-question-modal');
+  showToast('题目已添加','success');
+  await loadQuestions();
 };
 
 window.setMode=(mode,el)=>{
@@ -591,74 +1033,7 @@ window.setMode=(mode,el)=>{
   document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active'); loadQuestions();
 };
-// ── TEXT IMPORT ──
-function parseTextBlock(text) {
-  const blocks = text.split('====').map(b => b.trim()).filter(Boolean);
-  let results = [];
 
-  for (let block of blocks) {
-    const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-
-    let question = '';
-    let options = [];
-    let answer = '';
-
-    for (let line of lines) {
-      if (/^[A-D][\.\、]/.test(line)) {
-        options.push(line.replace(/^[A-D][\.\、]\s*/, ''));
-      } else if (/^答案[:：]/.test(line)) {
-        answer = line.replace(/^答案[:：]\s*/, '');
-      } else {
-        question += line + '\n';
-      }
-    }
-
-    results.push({
-      type: 'choice',
-      question: question.trim(),
-      options,
-      answer
-    });
-  }
-
-  return results;
-}
-
-window.openImportModal = () => {
-  if(!state.currentSubject){
-    showToast('请先选择科目','error');
-    return;
-  }
-  openModal('import-modal');
-};
-
-window.submitImport = async () => {
-  const text = $('import-text').value.trim();
-  if(!text){
-    showToast('请输入内容','error');
-    return;
-  }
-
-  const list = parseTextBlock(text);
-
-  setLoading(true);
-
-  for (let q of list) {
-    await addQuestion({
-      ...q,
-      chapterId: state.currentChapter || null,
-      pointName: '',
-      pointId: null
-    });
-  }
-
-  setLoading(false);
-
-  closeModal('import-modal');
-  $('import-text').value = '';
-
-  showToast(`成功导入 ${list.length} 题`, 'success');
-};
 // ── INIT ──
 setLoading(true);
 loadSubjects().then(()=>setLoading(false)).catch(e=>{
