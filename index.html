@@ -225,25 +225,11 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18
 .spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:700px){.outline-panel{display:none}.main{padding:10px 10px 48px}.stats-row .stat-label{display:none}.modal-wide,.modal-xl{max-width:100%}}
-/* ── SKELETON ── */
-@keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
-.sk{border-radius:6px;background:linear-gradient(90deg,#ece9e4 25%,#f5f2ed 50%,#ece9e4 75%);background-size:600px 100%;animation:shimmer 1.4s infinite linear}
-.sk-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
-.sk-line{height:14px;margin-bottom:8px}
-.sk-line.w100{width:100%}.sk-line.w80{width:80%}.sk-line.w60{width:60%}.sk-line.w40{width:40%}
-.sk-header{height:36px;margin-bottom:14px}
-.sk-opts{display:flex;flex-direction:column;gap:7px;margin:12px 0}
-.sk-opt{height:38px;border-radius:8px}
-.sk-btn-row{display:flex;gap:6px;margin-top:12px}
-.sk-btn{height:34px;flex:1;border-radius:8px}
-/* ── CACHE INDICATOR ── */
-.cache-badge{font-size:10px;color:var(--text-muted);padding:1px 6px;background:var(--surface2);border-radius:4px;margin-left:6px;vertical-align:middle;display:none}
-.cache-badge.visible{display:inline}
 </style>
 </head>
 <body>
 <div id="loading-overlay" style="display:none"><div class="spinner"></div></div>
-<nav><div class="nav-logo">📚 刷题本<span class="cache-badge" id="cache-badge">缓存</span></div></nav>
+<nav><div class="nav-logo">📚 刷题本</div><div style="flex:1"></div><div id="nav-user" style="display:flex;align-items:center;gap:8px"></div></nav>
 <div class="subject-bar">
   <span class="subject-label">科目：</span>
   <div id="subject-bar-inner" style="display:flex;gap:6px;align-items:center"></div>
@@ -533,6 +519,10 @@ D. 任意流体
   <div class="modal" style="max-width:400px">
     <div class="modal-header"><span class="modal-title">🖼 插入图片</span><button class="modal-close" onclick="closeModal('img-modal')">×</button></div>
     <div class="modal-body">
+      <div style="display:flex;gap:8px;margin-bottom:4px">
+        <button class="btn-submit" onclick="triggerImgUpload(S.imgTarget)" style="flex:1;padding:10px;font-size:13px">📷 从手机选择图片上传</button>
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin:2px 0 8px">— 或者直接填写图片 URL —</div>
       <div class="form-group"><label class="form-label">图片 URL</label><input class="form-input" id="img-url" placeholder="https://example.com/image.png"></div>
       <div class="form-group"><label class="form-label">宽度（如 100% 或 400px）</label><input class="form-input" id="img-w" value="100%"></div>
       <div id="img-pv" style="display:none;margin-top:4px"><img id="img-pv-img" style="max-width:100%;border-radius:8px;border:1px solid var(--border)"></div>
@@ -548,7 +538,9 @@ D. 任意流体
 <!-- ═══ SCRIPT ═══ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore,collection,doc,getDoc,getDocs,addDoc,updateDoc,deleteDoc,query,where,orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore,collection,doc,getDoc,getDocs,addDoc,updateDoc,deleteDoc,query,where,orderBy,writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,updateProfile,sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getStorage,ref as storageRef,uploadBytes,getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig={
   apiKey:"AIzaSyD-Qn2wVwHT2ibmlK6ke2gw8c8T6mlTEk8",
@@ -560,6 +552,8 @@ const firebaseConfig={
 };
 const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
+const auth=getAuth(app);
+const storage=getStorage(app);
 
 const S={
   subjects:[],currentSubject:null,
@@ -567,7 +561,8 @@ const S={
   currentChapter:null,currentSection:null,
   questions:[],currentIndex:0,mode:'all',
   editingQId:null,pendingImport:[],pendingOutline:[],
-  imgTarget:null
+  imgTarget:null,
+  currentUser:null   // ← logged-in user
 };
 
 const $=id=>document.getElementById(id);
@@ -585,116 +580,37 @@ function toast(msg,type='info'){
 }
 function loading(on){$('loading-overlay').style.display=on?'flex':'none';}
 
-// ═══ LOCAL CACHE ═══
-const CACHE_TTL = 5*60*1000; // 5 min
-
-function cacheKey(type,subId){return `sdb_${type}_${subId}`;}
-
-function cacheSet(type,subId,data){
-  try{localStorage.setItem(cacheKey(type,subId),JSON.stringify({ts:Date.now(),data}));}
-  catch(e){/* storage full, ignore */}
+// ═══ AUTH ═══
+function uid(){return S.currentUser?.uid||null;}
+function renderNavUser(){
+  const el=$('nav-user');if(!el)return;
+  if(S.currentUser){
+    const name=S.currentUser.displayName||S.currentUser.email.split('@')[0];
+    el.innerHTML=`<span style="font-size:12px;color:var(--text-secondary);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">👤 ${name}</span>
+      <button onclick="window._signOut()" style="padding:3px 10px;border-radius:14px;border:1px solid var(--border);background:transparent;font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;color:var(--text-muted)">退出</button>`;
+  } else {
+    el.innerHTML=`<button onclick="openModal('auth-modal')" style="padding:4px 14px;border-radius:16px;border:none;background:var(--accent);color:white;font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif">登录 / 注册</button>`;
+  }
 }
-function cacheGet(type,subId){
-  try{
-    const raw=localStorage.getItem(cacheKey(type,subId));
-    if(!raw)return null;
-    const obj=JSON.parse(raw);
-    if(Date.now()-obj.ts>CACHE_TTL){localStorage.removeItem(cacheKey(type,subId));return null;}
-    return obj.data;
-  }catch{return null;}
-}
-function cacheInvalidate(subId){
-  ['chapters','sections','questions'].forEach(t=>{
-    try{localStorage.removeItem(cacheKey(t,subId));}catch{}
-  });
-}
-function cacheSetSubjects(data){
-  try{localStorage.setItem('sdb_subjects',JSON.stringify({ts:Date.now(),data}));}catch{}
-}
-function cacheGetSubjects(){
-  try{
-    const raw=localStorage.getItem('sdb_subjects');if(!raw)return null;
-    const obj=JSON.parse(raw);
-    if(Date.now()-obj.ts>CACHE_TTL){localStorage.removeItem('sdb_subjects');return null;}
-    return obj.data;
-  }catch{return null;}
-}
-
-function showCacheBadge(on){
-  const b=$('cache-badge');if(b){b.classList.toggle('visible',on);}
-}
-
-// ═══ SKELETON ═══
-function renderSkeleton(){
-  $('cards-area').innerHTML=`
-    <div class="sk-card">
-      <div class="sk sk-header"></div>
-      <div class="sk sk-line w100"></div>
-      <div class="sk sk-line w80"></div>
-      <div class="sk sk-line w60"></div>
-      <div class="sk-opts">
-        <div class="sk sk-opt"></div>
-        <div class="sk sk-opt"></div>
-        <div class="sk sk-opt"></div>
-        <div class="sk sk-opt"></div>
-      </div>
-      <div class="sk-btn-row">
-        <div class="sk sk-btn"></div>
-        <div class="sk sk-btn"></div>
-        <div class="sk sk-btn" style="flex:2"></div>
-      </div>
-    </div>`;
-}
+window._signOut=async()=>{
+  await signOut(auth);
+  S.currentUser=null;S.subjects=[];S.currentSubject=null;S.chapters=[];S.sections=[];S.questions=[];
+  renderNavUser();renderSubjectBar();renderEmptyState();
+  $('chapter-bar-inner').innerHTML='';$('outline-tree').innerHTML='';
+  toast('已退出登录','info');
+};
 
 // ═══ FIREBASE ═══
 async function loadSubjects(){
-  // 1. Try cache first → render immediately
-  const cached=cacheGetSubjects();
-  if(cached&&cached.length>0){
-    S.subjects=cached;
-    renderSubjectBar();
-    showCacheBadge(true);
-    // kick off first subject from cache (non-blocking)
-    const firstId=S.subjects[0].id;
-    selectSubjectFromCache(firstId);
-  } else {
-    renderSkeleton();
-  }
-  // 2. Always fetch fresh from Firestore
-  const snap=await getDocs(collection(db,'subjects'));
-  const fresh=snap.docs.map(d=>({id:d.id,...d.data()}));
-  cacheSetSubjects(fresh);
-  // Only re-render if data changed or was empty
-  const changed=JSON.stringify(fresh)!==JSON.stringify(S.subjects);
-  S.subjects=fresh;
+  if(!uid()){renderEmptyState();return;}
+  const snap=await getDocs(query(collection(db,'subjects'),where('userId','==',uid())));
+  S.subjects=snap.docs.map(d=>({id:d.id,...d.data()}));
   renderSubjectBar();
-  showCacheBadge(false);
-  if(fresh.length===0){renderEmptyState();return;}
-  if(changed||!S.currentSubject){
-    await selectSubject(S.subjects[0].id);
-  }
+  if(S.subjects.length>0) await selectSubject(S.subjects[0].id);
+  else renderEmptyState();
 }
-
-// Fast path: render UI from cache, then fetch questions in background
-async function selectSubjectFromCache(id){
-  S.currentSubject=S.subjects.find(s=>s.id===id);
-  S.currentChapter=null;S.currentSection=null;
-  const cachedCh=cacheGet('chapters',id);
-  const cachedSec=cacheGet('sections',id);
-  const cachedQ=cacheGet('questions',id);
-  if(cachedCh) S.chapters=cachedCh;
-  if(cachedSec) S.sections=cachedSec;
-  if(cachedQ){
-    S.questions=cachedQ;
-    renderOutline();renderChapterBar();renderCards();renderStats();
-  } else {
-    renderOutline();renderChapterBar();renderSkeleton();
-  }
-}
-
 async function createSubject(name){
-  const ref=await addDoc(collection(db,'subjects'),{name,createdAt:Date.now()});
-  cacheSetSubjects(null); // invalidate
+  const ref=await addDoc(collection(db,'subjects'),{name,userId:uid(),createdAt:Date.now()});
   await loadSubjects(); await selectSubject(ref.id);
 }
 async function selectSubject(id){
@@ -703,32 +619,13 @@ async function selectSubject(id){
   renderSubjectBar();
   await loadChapSec(id);
 }
-
-// ★ KEY OPTIMIZATION: parallel queries
 async function loadChapSec(subId){
-  // Try cache while Firestore loads
-  const cachedCh=cacheGet('chapters',subId);
-  const cachedSec=cacheGet('sections',subId);
-  if(cachedCh&&cachedSec){
-    S.chapters=cachedCh;S.sections=cachedSec;
-    renderOutline();renderChapterBar();
-  }
-
-  // ★ Parallel fetch: chapters + sections at the same time
-  const fetchCh=getDocs(query(collection(db,'chapters'),where('subjectId','==',subId),orderBy('order')))
-    .catch(()=>getDocs(query(collection(db,'chapters'),where('subjectId','==',subId))));
-  const fetchSec=getDocs(query(collection(db,'sections'),where('subjectId','==',subId),orderBy('order')))
-    .catch(()=>getDocs(query(collection(db,'sections'),where('subjectId','==',subId))));
-
-  const [chSnap,secSnap]=await Promise.all([fetchCh,fetchSec]);
-  S.chapters=chSnap.docs.map(d=>({id:d.id,...d.data()}));
-  S.sections=secSnap.docs.map(d=>({id:d.id,...d.data()}));
-
-  cacheSet('chapters',subId,S.chapters);
-  cacheSet('sections',subId,S.sections);
-
-  renderOutline();renderChapterBar();
+  try{const s=await getDocs(query(collection(db,'chapters'),where('subjectId','==',subId),orderBy('order')));S.chapters=s.docs.map(d=>({id:d.id,...d.data()}));}
+  catch{const s=await getDocs(query(collection(db,'chapters'),where('subjectId','==',subId)));S.chapters=s.docs.map(d=>({id:d.id,...d.data()}));}
+  try{const s=await getDocs(query(collection(db,'sections'),where('subjectId','==',subId),orderBy('order')));S.sections=s.docs.map(d=>({id:d.id,...d.data()}));}
+  catch{const s=await getDocs(query(collection(db,'sections'),where('subjectId','==',subId)));S.sections=s.docs.map(d=>({id:d.id,...d.data()}));}
   await loadQuestions();
+  renderOutline();renderChapterBar();
 }
 async function createChapter(name){
   if(!S.currentSubject) return null;
@@ -750,51 +647,24 @@ async function deleteSection(id){await deleteDoc(doc(db,'sections',id));}
 
 async function loadQuestions(){
   if(!S.currentSubject){S.questions=[];renderCards();return;}
-
-  // Show skeleton while loading
-  renderSkeleton();
-
-  // Try cache for full-subject queries
-  const useCache=!S.currentSection&&!S.currentChapter&&S.mode==='all';
-  if(useCache){
-    const cached=cacheGet('questions',S.currentSubject.id);
-    if(cached){S.questions=cached;renderCards();renderStats();showCacheBadge(true);}
-  }
-
   let snap;
   if(S.currentSection) snap=await getDocs(query(collection(db,'questions'),where('subjectId','==',S.currentSubject.id),where('sectionId','==',S.currentSection)));
   else if(S.currentChapter) snap=await getDocs(query(collection(db,'questions'),where('subjectId','==',S.currentSubject.id),where('chapterId','==',S.currentChapter)));
   else snap=await getDocs(query(collection(db,'questions'),where('subjectId','==',S.currentSubject.id)));
-
   let qs=snap.docs.map(d=>({id:d.id,...d.data()}));
-  if(useCache) cacheSet('questions',S.currentSubject.id,qs);
-  showCacheBadge(false);
-
   if(S.mode==='wrong') qs=qs.filter(q=>q.errorCount>0);
   if(S.mode==='random') qs=qs.sort(()=>Math.random()-.5);
   S.questions=qs;S.currentIndex=0;
   renderCards();renderStats();
 }
-
-// ★ Optimistic update: update UI instantly, write to Firestore in background
 async function markQ(id,correct){
-  // 1. Update local state immediately (no waiting)
-  const q=S.questions.find(q=>q.id===id);
-  if(q){
-    if(correct) q.correctCount=(q.correctCount||0)+1;
-    else q.errorCount=(q.errorCount||0)+1;
-  }
-  renderCurrentCard();renderStats();
-  // Invalidate questions cache so next load gets fresh data
-  if(S.currentSubject) cacheInvalidate(S.currentSubject.id);
-
-  // 2. Write to Firestore in background (don't await in the hot path)
   const ref=doc(db,'questions',id);
-  getDoc(ref).then(snap=>{
-    const d=snap.data();
-    if(correct) return updateDoc(ref,{correctCount:(d.correctCount||0)+1});
-    else return updateDoc(ref,{errorCount:(d.errorCount||0)+1});
-  }).catch(e=>console.error('markQ write failed',e));
+  const d=(await getDoc(ref)).data();
+  if(correct) await updateDoc(ref,{correctCount:(d.correctCount||0)+1});
+  else await updateDoc(ref,{errorCount:(d.errorCount||0)+1});
+  const q=S.questions.find(q=>q.id===id);
+  if(q){if(correct)q.correctCount=(q.correctCount||0)+1;else q.errorCount=(q.errorCount||0)+1;}
+  renderCurrentCard();renderStats();
 }
 async function addQ(data){
   await addDoc(collection(db,'questions'),{
@@ -805,7 +675,6 @@ async function addQ(data){
     answer:data.answer,explanation:data.explanation||'',
     errorCount:0,correctCount:0,createdAt:Date.now()
   });
-  cacheInvalidate(S.currentSubject.id);
 }
 async function updateQ(id,data){
   await updateDoc(doc(db,'questions',id),{
@@ -814,11 +683,9 @@ async function updateQ(id,data){
     chapterId:data.chapterId||null,sectionId:data.sectionId||null,
     pointId:data.pointId||null,pointName:data.pointName||''
   });
-  cacheInvalidate(S.currentSubject.id);
 }
 async function deleteQ(id){
   await deleteDoc(doc(db,'questions',id));
-  cacheInvalidate(S.currentSubject.id);
   toast('已删除','info');await loadQuestions();
 }
 
@@ -1052,7 +919,7 @@ function renderCurrentCard(){
   if(window.MathJax)MathJax.typesetPromise();
   renderStats();
 }
-function renderEmptyState(){$('cards-area').innerHTML=`<div class="empty-card"><div class="empty-icon">📚</div><div class="empty-title">还没有科目</div><div class="empty-sub">先添加一个科目</div><button class="btn-submit" onclick="openModal('add-subject-modal')" style="margin-top:14px">＋ 添加科目</button></div>`;}
+function renderEmptyState(){$('cards-area').innerHTML=`<div class="empty-card"><div class="empty-icon">📚</div><div class="empty-title">还没有科目</div><div class="empty-sub">先添加一个科目开始吧</div><button class="btn-submit" onclick="openModal('add-subject-modal')" style="margin-top:14px">＋ 添加科目</button></div>`;}
 
 // section select sync
 function fillChSel(selId,selectedId=''){
@@ -1073,13 +940,7 @@ window.syncTypeForm=(prefix)=>{
 
 // ═══ WINDOW ACTIONS ═══
 window._reveal=()=>{$('ans-main').classList.add('visible');$('reveal-btn').style.display='none';if(window.MathJax)MathJax.typesetPromise();};
-window._mark=async(correct)=>{
-  const q=S.questions[S.currentIndex];if(!q)return;
-  // No loading spinner — optimistic update is instant
-  await markQ(q.id,correct);
-  toast(correct?'✓ 答对了':'✗ 答错了',correct?'success':'error');
-  setTimeout(()=>window._next(),400);
-};
+window._mark=async(correct)=>{const q=S.questions[S.currentIndex];if(!q)return;loading(true);await markQ(q.id,correct);loading(false);toast(correct?'✓ 答对了':'✗ 答错了',correct?'success':'error');setTimeout(()=>window._next(),400);};
 window._next=()=>{if(S.currentIndex<S.questions.length-1){S.currentIndex++;renderCurrentCard();}else toast('已是最后一题 🎉','success');};
 window._prev=()=>{if(S.currentIndex>0){S.currentIndex--;renderCurrentCard();}};
 window._selOpt=(el,gid)=>{document.getElementById(gid)?.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');};
@@ -1286,6 +1147,8 @@ window.ins=(targetId,before,after)=>{
 window.openImgModal=(targetId)=>{
   S.imgTarget=targetId;$('img-url').value='';$('img-w').value='100%';$('img-pv').style.display='none';openModal('img-modal');
 };
+// Also expose triggerImgUpload for direct upload from toolbar (calls modal's upload)
+// Note: triggerImgUpload is defined in the init section below
 window.previewImg=()=>{
   const url=$('img-url').value.trim();if(!url){toast('请输入URL','error');return;}
   $('img-pv-img').src=url;$('img-pv').style.display='block';
@@ -1304,8 +1167,131 @@ window.setMode=(mode,el)=>{
   el.classList.add('active');loadQuestions();
 };
 
+// ═══ AUTH MODAL LOGIC ═══
+window.switchAuthTab=(tab)=>{
+  ['login','register','reset'].forEach(t=>{
+    const el=$(t+'-form');if(el)el.style.display='none';
+    const btn=$('auth-tab-'+t);if(btn)btn.classList.remove('active');
+  });
+  const f=$(tab+'-form');if(f)f.style.display='flex';
+  const b=$('auth-tab-'+tab);if(b)b.classList.add('active');
+};
+window.submitLogin=async()=>{
+  const email=$('login-email').value.trim(),pass=$('login-pass').value;
+  if(!email||!pass){toast('请填写邮箱和密码','error');return;}
+  loading(true);
+  try{
+    await signInWithEmailAndPassword(auth,email,pass);
+    closeModal('auth-modal');toast('登录成功 👋','success');
+  }catch(e){
+    const msgs={'auth/user-not-found':'邮箱未注册','auth/wrong-password':'密码错误','auth/invalid-email':'邮箱格式不正确','auth/invalid-credential':'邮箱或密码错误'};
+    toast(msgs[e.code]||'登录失败','error');
+  }
+  loading(false);
+};
+window.submitRegister=async()=>{
+  const name=$('reg-name').value.trim(),email=$('reg-email').value.trim(),pass=$('reg-pass').value,pass2=$('reg-pass2').value;
+  if(!name||!email||!pass){toast('请填写完整信息','error');return;}
+  if(pass!==pass2){toast('两次密码不一致','error');return;}
+  if(pass.length<6){toast('密码至少6位','error');return;}
+  loading(true);
+  try{
+    const cred=await createUserWithEmailAndPassword(auth,email,pass);
+    await updateProfile(cred.user,{displayName:name});
+    closeModal('auth-modal');toast('注册成功，欢迎 '+name+' 👋','success');
+  }catch(e){
+    const msgs={'auth/email-already-in-use':'该邮箱已注册','auth/invalid-email':'邮箱格式不正确','auth/weak-password':'密码强度不够'};
+    toast(msgs[e.code]||'注册失败','error');
+  }
+  loading(false);
+};
+window.submitReset=async()=>{
+  const email=$('reset-email').value.trim();
+  if(!email){toast('请输入邮箱','error');return;}
+  loading(true);
+  try{await sendPasswordResetEmail(auth,email);toast('重置邮件已发送，请检查邮箱','success');window.switchAuthTab('login');}
+  catch(e){toast('发送失败','error');}
+  loading(false);
+};
+
+// ═══ IMAGE UPLOAD (手机直接选图) ═══
+window.triggerImgUpload=(targetId)=>{
+  S.imgTarget=targetId;
+  const input=document.createElement('input');
+  input.type='file';input.accept='image/*';
+  input.onchange=async(e)=>{
+    const file=e.target.files[0];if(!file)return;
+    if(file.size>5*1024*1024){toast('图片不能超过5MB','error');return;}
+    loading(true);
+    try{
+      const ext=(file.name.split('.').pop())||'jpg';
+      const path='images/'+(uid()||'anon')+'/'+Date.now()+'.'+ext;
+      const sRef=storageRef(storage,path);
+      await uploadBytes(sRef,file);
+      const url=await getDownloadURL(sRef);
+      const tag='<img src="'+url+'" style="max-width:100%;border-radius:8px;margin:8px 0">';
+      const ta=$(S.imgTarget);
+      if(ta){const pos=ta.selectionStart;ta.value=ta.value.substring(0,pos)+'\n'+tag+'\n'+ta.value.substring(pos);ta.focus();}
+      toast('图片上传成功 ✅','success');
+    }catch(err){toast('上传失败：'+err.message,'error');console.error(err);}
+    loading(false);
+  };
+  input.click();
+};
+
 // ═══ INIT ═══
-loadSubjects().catch(e=>{console.error(e);toast('数据库连接失败','error');});
+loading(true);
+onAuthStateChanged(auth,async(user)=>{
+  S.currentUser=user||null;
+  renderNavUser();
+  if(user){
+    try{await loadSubjects();}catch(e){console.error(e);toast('加载失败','error');}
+  } else {
+    S.subjects=[];S.currentSubject=null;
+    renderSubjectBar();
+    $('chapter-bar-inner').innerHTML='';$('outline-tree').innerHTML='';
+    $('cards-area').innerHTML='<div class="empty-card"><div class="empty-icon">🔐</div><div class="empty-title">请先登录</div><div class="empty-sub">登录后即可使用你的专属刷题本</div><button class="btn-submit" onclick="openModal(\'auth-modal\')" style="margin-top:16px">登录 / 注册</button></div>';
+  }
+  loading(false);
+});
 </script>
+
+<!-- ═══ AUTH MODAL ═══ -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-title">📚 刷题本 · 登录</span>
+      <button class="modal-close" onclick="closeModal('auth-modal')">×</button>
+    </div>
+    <div style="display:flex;border-bottom:1px solid var(--border)">
+      <button id="auth-tab-login" onclick="switchAuthTab('login')" style="flex:1;padding:10px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;border-bottom:2px solid var(--accent);color:var(--accent);font-weight:500">登录</button>
+      <button id="auth-tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:10px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;color:var(--text-secondary);border-bottom:2px solid transparent">注册</button>
+      <button id="auth-tab-reset" onclick="switchAuthTab('reset')" style="flex:1;padding:10px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;color:var(--text-secondary);border-bottom:2px solid transparent">找回密码</button>
+    </div>
+    <!-- 登录 -->
+    <div id="login-form" style="display:flex;flex-direction:column;gap:12px;padding:20px">
+      <div class="form-group"><label class="form-label">邮箱</label><input class="form-input" id="login-email" type="email" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="form-group"><label class="form-label">密码</label><input class="form-input" id="login-pass" type="password" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitLogin()"></div>
+      <button class="btn-submit" onclick="submitLogin()" style="width:100%;padding:11px;font-size:14px">登录</button>
+      <div style="text-align:center;font-size:12px;color:var(--text-muted)">没有账号？<span style="color:var(--accent);cursor:pointer" onclick="switchAuthTab('register')">立即注册</span></div>
+    </div>
+    <!-- 注册 -->
+    <div id="register-form" style="display:none;flex-direction:column;gap:12px;padding:20px">
+      <div class="form-group"><label class="form-label">昵称</label><input class="form-input" id="reg-name" type="text" placeholder="你的名字"></div>
+      <div class="form-group"><label class="form-label">邮箱</label><input class="form-input" id="reg-email" type="email" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="form-group"><label class="form-label">密码（至少6位）</label><input class="form-input" id="reg-pass" type="password" placeholder="••••••" autocomplete="new-password"></div>
+      <div class="form-group"><label class="form-label">确认密码</label><input class="form-input" id="reg-pass2" type="password" placeholder="••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitRegister()"></div>
+      <button class="btn-submit green" onclick="submitRegister()" style="width:100%;padding:11px;font-size:14px">创建账号</button>
+      <div style="text-align:center;font-size:12px;color:var(--text-muted)">已有账号？<span style="color:var(--accent);cursor:pointer" onclick="switchAuthTab('login')">直接登录</span></div>
+    </div>
+    <!-- 找回密码 -->
+    <div id="reset-form" style="display:none;flex-direction:column;gap:12px;padding:20px">
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.6">输入注册邮箱，我们将发送密码重置链接。</div>
+      <div class="form-group"><label class="form-label">邮箱</label><input class="form-input" id="reset-email" type="email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')submitReset()"></div>
+      <button class="btn-submit" onclick="submitReset()" style="width:100%;padding:11px;font-size:14px">发送重置邮件</button>
+      <div style="text-align:center;font-size:12px;color:var(--text-muted)"><span style="color:var(--accent);cursor:pointer" onclick="switchAuthTab('login')">← 返回登录</span></div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
