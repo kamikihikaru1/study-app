@@ -3,283 +3,1079 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>刷题本</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<title>刷题本 · Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.min.js"></script>
 <style>
+/* ═══════════════════════════════════════════
+   TOKENS & THEME
+═══════════════════════════════════════════ */
 :root {
-  --bg:#f5f3ef;--surface:#fff;--surface2:#f0ede8;--border:#e0dbd2;
-  --text-primary:#1a1814;--text-secondary:#6b6560;--text-muted:#a09890;
-  --accent:#2c5f8a;--accent-light:#e8f0f7;
-  --fresh:#3a7bd5;--warn:#d48c1a;--warn-bg:#fdf4e3;
-  --danger:#c8560a;--danger-bg:#fdf0e8;
-  --green:#2d9a5a;--green-light:#e8f8ee;
-  --radius:12px;
-  --shadow:0 2px 12px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.04);
-  --shadow-h:0 8px 32px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06);
+  --bg: #f5f3ef;
+  --surface: #fff;
+  --surface2: #f0ede8;
+  --surface3: #e8e4de;
+  --border: #e0dbd2;
+  --border2: #ccc7be;
+  --text-primary: #1a1814;
+  --text-secondary: #6b6560;
+  --text-muted: #a09890;
+  --accent: #2c5f8a;
+  --accent-light: #e8f0f7;
+  --accent2: #7c4dbd;
+  --fresh: #3a7bd5;
+  --warn: #d48c1a;
+  --warn-bg: #fdf4e3;
+  --danger: #c8560a;
+  --danger-bg: #fdf0e8;
+  --green: #2d9a5a;
+  --green-light: #e8f8ee;
+  --pink: #d4608a;
+  --pink-light: #fdf0f5;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 12px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.04);
+  --shadow-h: 0 8px 32px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06);
+  --shadow-xl: 0 20px 60px rgba(0,0,0,.18);
+  --sidebar-w: 280px;
+  --sidebar-collapsed: 48px;
+  --transition: .2s ease;
 }
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;display:flex;flex-direction:column}
-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18px;height:50px;display:flex;align-items:center;position:sticky;top:0;z-index:100;gap:10px}
-.nav-logo{font-family:'Noto Serif SC',serif;font-weight:600;font-size:15px;white-space:nowrap;flex-shrink:0}
-.subject-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:9px 16px;display:flex;align-items:center;gap:7px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
-.subject-bar::-webkit-scrollbar{display:none}
-.subject-label{font-size:11px;color:var(--text-muted);white-space:nowrap}
-.subject-chip{padding:4px 12px;border-radius:20px;font-size:12px;border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);cursor:pointer;white-space:nowrap;transition:all .15s;user-select:none;flex-shrink:0}
-.subject-chip:hover{border-color:var(--accent);color:var(--accent)}
-.subject-chip.active{background:var(--accent);border-color:var(--accent);color:white;font-weight:500}
-.subject-chip.add-chip{border-style:dashed;color:var(--text-muted)}
-.subject-chip.add-chip:hover{border-color:var(--accent);color:var(--accent)}
-/* chapter bar - mobile-friendly */
-.chapter-bar{background:var(--surface2);border-bottom:1px solid var(--border);padding:7px 14px;display:flex;align-items:center;gap:5px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
-.chapter-bar::-webkit-scrollbar{display:none}
-.chbar-label{font-size:11px;color:var(--text-muted);white-space:nowrap;flex-shrink:0}
-.chbar-chip{padding:3px 10px;border-radius:14px;font-size:12px;border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
-.chbar-chip:hover{border-color:var(--accent);color:var(--accent)}
-.chbar-chip.active{background:var(--accent);border-color:var(--accent);color:white}
-.chbar-sec{font-size:11px;padding:2px 8px;background:#f8f6f2;color:var(--text-secondary);border:1px solid var(--border)}
-.chbar-sec.active{background:var(--accent);border-color:var(--accent);color:white}
-.chbar-manage{padding:3px 9px;border-radius:14px;font-size:11px;border:1px dashed var(--border);background:transparent;color:var(--text-muted);cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:'Noto Sans SC',sans-serif;transition:all .15s}
-.chbar-manage:hover{border-color:var(--accent);color:var(--accent)}
-/* main */
-.main{flex:1;display:flex;max-width:1000px;margin:0 auto;width:100%;padding:18px 18px 48px;gap:18px}
-/* outline panel */
-.outline-panel{width:225px;flex-shrink:0}
-.panel-title{font-size:11px;font-weight:500;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;padding-left:4px;display:flex;align-items:center;justify-content:space-between}
-.panel-gear{font-size:17px;cursor:pointer;color:var(--text-muted);transition:color .15s;line-height:1}
-.panel-gear:hover{color:var(--accent)}
-.outline-tree{display:flex;flex-direction:column;gap:2px}
-/* chapter row */
-.oc-wrap{margin-bottom:1px}
-.oc-row{display:flex;align-items:center;gap:3px;padding:1px 0}
-.oc-main{flex:1;min-width:0;font-size:13px;font-weight:500;color:var(--text-primary);padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .12s;display:flex;align-items:center;gap:5px}
-.oc-main:hover{background:var(--surface2)}
-.oc-main.active{background:var(--accent-light);color:var(--accent)}
-.oc-arrow{font-size:9px;transition:transform .2s;color:var(--text-muted);flex-shrink:0}
-.oc-open .oc-arrow{transform:rotate(90deg)}
-.oc-acts{display:flex;gap:2px;opacity:0;transition:opacity .15s;flex-shrink:0}
-.oc-row:hover .oc-acts{opacity:1}
-.oc-btn{width:21px;height:21px;border:none;background:none;cursor:pointer;font-size:11px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all .12s}
-.oc-btn:hover{background:var(--surface2);color:var(--text-primary)}
-.oc-btn.d:hover{background:var(--danger-bg);color:var(--danger)}
-/* section list */
-.os-list{display:none;flex-direction:column;gap:1px;padding-left:16px;margin-bottom:2px}
-.os-list.open{display:flex}
-.os-row{display:flex;align-items:center;gap:3px;padding:1px 0}
-.os-main{flex:1;min-width:0;font-size:12px;color:var(--text-secondary);padding:4px 8px;border-radius:6px;cursor:pointer;transition:background .12s;display:flex;align-items:center;justify-content:space-between}
-.os-main:hover{background:var(--surface2)}
-.os-main.active{background:var(--accent-light);color:var(--accent);font-weight:500}
-.os-cnt{font-size:10px;color:var(--text-muted);background:var(--surface2);padding:1px 5px;border-radius:7px;flex-shrink:0}
-.os-acts{display:flex;gap:2px;opacity:0;transition:opacity .15s;flex-shrink:0}
-.os-row:hover .os-acts{opacity:1}
-.add-sec-btn{width:100%;padding:4px 8px;border-radius:6px;border:1px dashed var(--border);background:transparent;font-size:11px;color:var(--text-muted);cursor:pointer;text-align:left;font-family:'Noto Sans SC',sans-serif;transition:all .15s;margin-top:2px}
-.add-sec-btn:hover{border-color:var(--accent);color:var(--accent)}
-.outline-btns{margin-top:10px;display:flex;flex-direction:column;gap:5px}
-.o-btn{width:100%;padding:6px;border-radius:8px;border:1px dashed var(--border);background:transparent;font-size:12px;color:var(--text-muted);cursor:pointer;transition:all .15s;font-family:'Noto Sans SC',sans-serif;text-align:center}
-.o-btn:hover{border-color:var(--accent);color:var(--accent)}
-/* content */
-.content-area{flex:1;min-width:0}
-.stats-row{display:flex;gap:7px;margin-bottom:14px}
-.stat-chip{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 9px;text-align:center}
-.stat-num{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;display:block}
-.stat-num.blue{color:var(--fresh)}.stat-num.yellow{color:var(--warn)}.stat-num.orange{color:var(--danger)}.stat-num.green{color:var(--green)}
-.stat-label{font-size:10px;color:var(--text-muted);margin-top:1px}
-.mode-row{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap}
-.mode-btn{padding:4px 11px;border-radius:6px;font-size:12px;border:1px solid var(--border);background:white;color:var(--text-secondary);cursor:pointer;transition:all .15s;font-family:'Noto Sans SC',sans-serif}
-.mode-btn.active{background:var(--accent);border-color:var(--accent);color:white}
-.progress-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.progress-info{font-size:12px;color:var(--text-muted);white-space:nowrap}
-.progress-track{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
-.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
-.progress-pct{font-size:12px;font-weight:500;color:var(--accent);white-space:nowrap}
-/* card */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .2s;margin-bottom:12px}
-.card:hover{box-shadow:var(--shadow-h)}
-.card.fresh{border-left:3px solid var(--fresh)}
-.card.warn{border-left:3px solid var(--warn)}
-.card.danger{border-left:3px solid var(--danger)}
-.card-header{padding:11px 16px 9px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-.card.warn .card-header{background:var(--warn-bg)}
-.card.danger .card-header{background:var(--danger-bg)}
-.q-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted)}
-.q-type{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:500}
-.q-type.choice{background:#e8f4fd;color:#1a6fa0}
-.q-type.multi{background:#e8f0fd;color:#3a1aa0}
-.q-type.fill{background:#e8f8ee;color:#1a7a40}
-.q-type.calc{background:#f3e8fd;color:#6a1aa0}
-.q-type.short{background:#fdf3e8;color:#a05a1a}
-.q-loc{font-size:11px;color:var(--text-muted);background:var(--surface2);padding:2px 7px;border-radius:4px}
-.q-topic{font-size:11px;color:var(--text-secondary);margin-left:auto;display:flex;align-items:center;gap:3px}
-.q-topic span{color:var(--accent)}
-.err-badge{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:500}
-.card.warn .err-badge{background:#f5e0a0;color:var(--warn)}
-.card.danger .err-badge{background:#f5c8a0;color:var(--danger)}
-.card-menu-btn{background:none;border:none;cursor:pointer;font-size:17px;color:var(--text-muted);padding:0 3px;line-height:1}
-.card-menu-btn:hover{color:var(--text-primary)}
-.card-body{padding:16px}
-.question-text{font-size:15px;line-height:1.75;color:var(--text-primary);margin-bottom:12px;font-family:'Noto Serif SC',serif}
-.question-text img{max-width:100%;border-radius:8px;margin:8px 0;display:block}
-.options-list{display:flex;flex-direction:column;gap:6px;margin-bottom:4px}
-.option{display:flex;align-items:flex-start;gap:9px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:all .15s;font-size:14px;line-height:1.6}
-.option:hover{border-color:var(--accent);background:var(--accent-light)}
-.option.selected{border-color:var(--accent);background:var(--accent-light)}
-.opt-label{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--text-muted);min-width:16px;margin-top:1px}
-.answer-section{border-top:1px dashed var(--border);margin-top:12px;padding-top:12px;display:none;animation:fadeIn .2s ease}
-.answer-section.visible{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.answer-label{font-size:10px;font-weight:500;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
-.answer-text{font-size:14px;line-height:1.8;color:var(--text-primary);background:var(--surface2);padding:10px 13px;border-radius:8px;border-left:3px solid var(--green)}
-.explanation-label{font-size:10px;font-weight:500;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px;margin-top:10px}
-.explanation-text{font-size:13px;line-height:1.8;color:var(--text-secondary);background:#f8f6f2;padding:10px 13px;border-radius:8px;border-left:3px solid var(--accent)}
-.reveal-btn{width:100%;padding:9px;margin-top:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;transition:all .15s;font-family:'Noto Sans SC',sans-serif}
-.reveal-btn:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
-.action-row{display:flex;gap:6px;padding:11px 16px;border-top:1px solid var(--border);background:var(--surface2)}
-.action-btn{flex:1;padding:8px 9px;border-radius:8px;font-size:13px;font-family:'Noto Sans SC',sans-serif;cursor:pointer;border:1px solid var(--border);transition:all .15s;font-weight:500}
-.btn-wrong{background:white;color:var(--danger);border-color:#f5c8a0}
-.btn-wrong:hover{background:var(--danger-bg);border-color:var(--danger)}
-.btn-right{background:white;color:var(--green);border-color:#b0e0c0}
-.btn-right:hover{background:var(--green-light);border-color:var(--green)}
-.btn-next{background:var(--accent);color:white;border-color:var(--accent);flex:2}
-.btn-next:hover{background:#245280}
-.nav-arrows{display:flex;justify-content:center;gap:10px;margin-top:7px}
-.arrow-btn{width:33px;height:33px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.arrow-btn:hover{border-color:var(--accent);color:var(--accent)}
-.empty-card{background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius);padding:40px 22px;text-align:center}
-.empty-icon{font-size:36px;margin-bottom:9px}
-.empty-title{font-size:15px;font-weight:500;margin-bottom:4px}
-.empty-sub{font-size:13px;color:var(--text-muted)}
-.cards-bar{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:12px}
-.ca-btn{padding:5px 13px;border-radius:8px;border:1px dashed var(--border);background:transparent;font-size:12px;color:var(--text-muted);cursor:pointer;transition:all .15s;font-family:'Noto Sans SC',sans-serif}
-.ca-btn:hover{border-color:var(--accent);color:var(--accent)}
-.ca-btn.g:hover{border-color:var(--green);color:var(--green)}
-/* modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:12px}
-.modal-overlay.open{display:flex}
-.modal{background:var(--surface);border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.2);width:100%;max-width:480px;max-height:93vh;overflow-y:auto}
-.modal-wide{max-width:580px}
-.modal-xl{max-width:660px}
-.modal-header{padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1}
-.modal-title{font-size:14px;font-weight:500}
-.modal-close{background:none;border:none;font-size:19px;cursor:pointer;color:var(--text-muted);line-height:1;padding:0}
-.modal-body{padding:16px 20px;display:flex;flex-direction:column;gap:12px}
-.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:7px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface)}
-.form-group{display:flex;flex-direction:column;gap:5px}
-.form-label{font-size:12px;color:var(--text-secondary);font-weight:500}
-.form-input{padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:'Noto Sans SC',sans-serif;color:var(--text-primary);background:var(--surface);transition:border .15s;resize:vertical}
-.form-input:focus{outline:none;border-color:var(--accent)}
-.form-select{padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'Noto Sans SC',sans-serif;background:var(--surface);color:var(--text-primary)}
-.btn-cancel{padding:7px 15px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;color:var(--text-secondary)}
-.btn-submit{padding:7px 15px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif}
-.btn-submit.green{background:var(--green)}
-.btn-sec{padding:7px 15px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;color:var(--text-secondary);transition:all .15s}
-.btn-sec:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
-.menu-item{padding:10px 12px;border-radius:8px;cursor:pointer;font-size:13px;transition:background .12s;display:flex;align-items:center;gap:9px}
-.menu-item:hover{background:var(--surface2)}
-.menu-item.danger{color:var(--danger)}
-.menu-item.danger:hover{background:var(--danger-bg)}
-/* editor toolbar */
-.ed-toolbar{display:flex;gap:4px;margin-bottom:4px;flex-wrap:wrap}
-.ed-btn{padding:2px 8px;border:1px solid var(--border);border-radius:5px;background:var(--surface);font-size:11px;cursor:pointer;color:var(--text-secondary);font-family:'Noto Sans SC',sans-serif;transition:all .12s}
-.ed-btn:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
-/* help box */
-.help-box{background:var(--accent-light);border:1px solid #c0d8f0;border-radius:8px;padding:10px 12px;font-size:12px;color:#2c5f8a;line-height:1.8}
-.help-box code{background:rgba(44,95,138,.15);padding:1px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:11px}
-.import-ta{min-height:190px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7}
-/* preview */
-.preview-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.preview-hd{padding:7px 11px;background:var(--surface2);font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
-.preview-badge{background:var(--accent);color:white;font-size:11px;padding:1px 8px;border-radius:10px}
-.preview-list{max-height:240px;overflow-y:auto}
-.pv-item{padding:8px 11px;border-bottom:1px solid var(--border);font-size:12px;display:flex;align-items:flex-start;gap:7px}
-.pv-item:last-child{border-bottom:none}
-.pv-type{font-size:10px;padding:1px 5px;border-radius:3px;font-weight:500;white-space:nowrap;flex-shrink:0;margin-top:1px}
-.pv-type.choice{background:#e8f4fd;color:#1a6fa0}
-.pv-type.multi{background:#e8f0fd;color:#3a1aa0}
-.pv-type.fill{background:#e8f8ee;color:#1a7a40}
-.pv-type.calc{background:#f3e8fd;color:#6a1aa0}
-.pv-type.short{background:#fdf3e8;color:#a05a1a}
-.pv-body{flex:1;min-width:0}
-.pv-q{color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pv-meta{color:var(--text-muted);margin-top:2px;font-size:11px}
-.pv-sec{display:inline-block;background:#f0f7ff;color:var(--accent);padding:1px 5px;border-radius:3px;font-size:10px;margin-left:4px}
-/* manage list */
-.om-list{display:flex;flex-direction:column;gap:5px}
-.om-ch{border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.om-ch-hd{padding:8px 11px;background:var(--surface2);display:flex;align-items:center;gap:7px}
-.om-ch-name{flex:1;font-size:13px;font-weight:500}
-.om-mini-btn{padding:2px 7px;border-radius:4px;border:1px solid var(--border);background:var(--surface);font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;transition:all .12s;color:var(--text-secondary)}
-.om-mini-btn:hover{border-color:var(--accent);color:var(--accent)}
-.om-mini-btn.d{color:var(--danger)}
-.om-mini-btn.d:hover{border-color:var(--danger);background:var(--danger-bg)}
-.om-secs{padding:5px 9px;display:flex;flex-direction:column;gap:3px}
-.om-sec-row{display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:6px;font-size:12px;background:var(--surface);border:1px solid transparent}
-.om-sec-name{flex:1;color:var(--text-secondary)}
-.om-sec-add{width:100%;padding:4px;border-radius:6px;border:1px dashed var(--border);background:transparent;font-size:11px;color:var(--text-muted);cursor:pointer;font-family:'Noto Sans SC',sans-serif;transition:all .15s}
-.om-sec-add:hover{border-color:var(--accent);color:var(--accent)}
-/* toast */
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1814;color:white;padding:8px 16px;border-radius:8px;font-size:13px;opacity:0;transition:all .25s;z-index:999;pointer-events:none;white-space:nowrap}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.toast-success{background:#2d7a4a}
-.toast.toast-error{background:#b83020}
-#loading-overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,.7);z-index:500;align-items:center;justify-content:center}
-.spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:700px){.outline-panel{display:none}.main{padding:10px 10px 48px}.stats-row .stat-label{display:none}.modal-wide,.modal-xl{max-width:100%}}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* ═══ SCROLLBAR ═══ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ═══════════════════════════════════════════
+   NAV
+═══════════════════════════════════════════ */
+nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 300;
+  gap: 10px;
+}
+.nav-logo {
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: .02em;
+}
+.nav-logo span { color: var(--accent); }
+.nav-divider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+.nav-btn {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+.nav-btn.accent { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* ═══ SUBJECT BAR ═══ */
+.subject-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 9px 16px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.subject-bar::-webkit-scrollbar { display: none; }
+.subject-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+.subject-chip {
+  padding: 4px 13px;
+  border-radius: 20px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.subject-chip:hover { border-color: var(--accent); color: var(--accent); }
+.subject-chip.active { background: var(--accent); border-color: var(--accent); color: white; font-weight: 500; }
+.subject-chip.add-chip { border-style: dashed; color: var(--text-muted); }
+.subject-chip.add-chip:hover { border-color: var(--accent); color: var(--accent); }
+.subject-exam-tag {
+  font-size: 10px;
+  background: var(--warn-bg);
+  color: var(--warn);
+  border: 1px solid #f0d898;
+  border-radius: 10px;
+  padding: 1px 6px;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+/* ═══ CHAPTER BAR ═══ */
+.chapter-bar {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  padding: 7px 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.chapter-bar::-webkit-scrollbar { display: none; }
+.chbar-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
+.chbar-chip {
+  padding: 3px 10px;
+  border-radius: 14px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.chbar-chip:hover { border-color: var(--accent); color: var(--accent); }
+.chbar-chip.active { background: var(--accent); border-color: var(--accent); color: white; }
+.chbar-sec { font-size: 11px; padding: 2px 8px; background: #f8f6f2; color: var(--text-secondary); border: 1px solid var(--border); }
+.chbar-sec.active { background: var(--accent); border-color: var(--accent); color: white; }
+.chbar-manage {
+  padding: 3px 9px;
+  border-radius: 14px;
+  font-size: 11px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: 'Noto Sans SC', sans-serif;
+  transition: all .15s;
+}
+.chbar-manage:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ═══ LAYOUT ═══ */
+.app-body {
+  flex: 1;
+  display: flex;
+  position: relative;
+}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--transition);
+  overflow: hidden;
+  position: sticky;
+  top: 50px;
+  height: calc(100vh - 50px);
+  z-index: 100;
+}
+.sidebar.collapsed { width: var(--sidebar-collapsed); }
+.sidebar-toggle {
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  z-index: 10;
+  transition: all .15s;
+  box-shadow: var(--shadow);
+}
+.sidebar-toggle:hover { color: var(--accent); border-color: var(--accent); }
+.sidebar-inner {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: var(--sidebar-w);
+}
+
+/* sidebar sections */
+.sb-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  padding-left: 2px;
+}
+.sb-icon-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sb-icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: background .12s;
+  white-space: nowrap;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.sb-icon-btn:hover { background: var(--surface2); color: var(--text-primary); }
+.sb-icon-btn .sb-ico { width: 22px; text-align: center; flex-shrink: 0; font-size: 15px; }
+
+/* today card */
+.today-card {
+  background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
+  border: 1px solid #c8dff5;
+  border-radius: var(--radius);
+  padding: 12px;
+}
+.today-num { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 500; color: var(--accent); }
+.today-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.today-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+.today-mini { background: white; border-radius: 6px; padding: 6px 8px; }
+.today-mini-num { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 500; }
+.today-mini-lbl { font-size: 10px; color: var(--text-muted); }
+
+/* draw card */
+.draw-card {
+  background: linear-gradient(135deg, #fdf0f8 0%, #f5e8fd 100%);
+  border: 1px solid #e8c8f0;
+  border-radius: var(--radius);
+  padding: 12px;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+}
+.draw-card:hover { box-shadow: 0 4px 16px rgba(124,77,189,.15); transform: translateY(-1px); }
+.draw-card-title { font-size: 12px; font-weight: 500; color: #7c4dbd; margin-bottom: 4px; }
+.draw-card-sub { font-size: 11px; color: #a880d0; }
+.draw-deco { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 28px; opacity: .6; }
+
+/* exam badge */
+.exam-badge {
+  background: var(--warn-bg);
+  border: 1px solid #f0d898;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.exam-badge-title { color: var(--warn); font-weight: 500; margin-bottom: 3px; }
+.exam-badge-days { font-family: 'JetBrains Mono', monospace; font-size: 18px; color: var(--danger); font-weight: 600; }
+
+/* ═══ MAIN CONTENT ═══ */
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.main-inner {
+  flex: 1;
+  display: flex;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 18px 18px 48px;
+  gap: 18px;
+}
+
+/* ═══ OUTLINE PANEL ═══ */
+.outline-panel { width: 220px; flex-shrink: 0; }
+.panel-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-left: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-gear { font-size: 17px; cursor: pointer; color: var(--text-muted); transition: color .15s; }
+.panel-gear:hover { color: var(--accent); }
+.outline-btns { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+.o-btn {
+  width: 100%;
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all .15s;
+  font-family: 'Noto Sans SC', sans-serif;
+  text-align: center;
+}
+.o-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* outline tree */
+.outline-tree { display: flex; flex-direction: column; gap: 2px; }
+.outline-refresh-btn {
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px dashed var(--border);
+  background: transparent;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all .15s;
+  font-family: 'Noto Sans SC', sans-serif;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.outline-refresh-btn:hover { border-color: var(--green); color: var(--green); }
+.oc-wrap { margin-bottom: 1px; }
+.oc-row { display: flex; align-items: center; gap: 3px; padding: 1px 0; }
+.oc-main {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .12s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.oc-main:hover { background: var(--surface2); }
+.oc-main.active { background: var(--accent-light); color: var(--accent); }
+.oc-arrow { font-size: 9px; transition: transform .2s; color: var(--text-muted); flex-shrink: 0; }
+.oc-open .oc-arrow { transform: rotate(90deg); }
+.oc-count { font-size: 10px; color: var(--text-muted); background: var(--surface2); padding: 1px 5px; border-radius: 7px; flex-shrink: 0; }
+.oc-acts { display: flex; gap: 2px; opacity: 0; transition: opacity .15s; flex-shrink: 0; }
+.oc-row:hover .oc-acts { opacity: 1; }
+.oc-btn {
+  width: 21px; height: 21px;
+  border: none; background: none;
+  cursor: pointer; font-size: 11px;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted);
+  transition: all .12s;
+}
+.oc-btn:hover { background: var(--surface2); color: var(--text-primary); }
+.oc-btn.d:hover { background: var(--danger-bg); color: var(--danger); }
+.os-list { display: none; flex-direction: column; gap: 1px; padding-left: 16px; margin-bottom: 2px; }
+.os-list.open { display: flex; }
+.os-row { display: flex; align-items: center; gap: 3px; padding: 1px 0; }
+.os-main {
+  flex: 1; min-width: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .12s;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.os-main:hover { background: var(--surface2); }
+.os-main.active { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+.os-cnt { font-size: 10px; color: var(--text-muted); background: var(--surface2); padding: 1px 5px; border-radius: 7px; flex-shrink: 0; }
+.os-acts { display: flex; gap: 2px; opacity: 0; transition: opacity .15s; flex-shrink: 0; }
+.os-row:hover .os-acts { opacity: 1; }
+.add-sec-btn {
+  width: 100%; padding: 4px 8px; border-radius: 6px;
+  border: 1px dashed var(--border); background: transparent;
+  font-size: 11px; color: var(--text-muted); cursor: pointer;
+  text-align: left; font-family: 'Noto Sans SC', sans-serif;
+  transition: all .15s; margin-top: 2px;
+}
+.add-sec-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ═══ CONTENT AREA ═══ */
+.content-area { flex: 1; min-width: 0; }
+
+/* stats */
+.stats-row { display: flex; gap: 7px; margin-bottom: 14px; }
+.stat-chip {
+  flex: 1; background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 9px; text-align: center;
+}
+.stat-num { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 500; display: block; }
+.stat-num.blue { color: var(--fresh); }
+.stat-num.yellow { color: var(--warn); }
+.stat-num.orange { color: var(--danger); }
+.stat-num.green { color: var(--green); }
+.stat-label { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+/* mode + streak */
+.mode-streak-row { display: flex; gap: 5px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+.mode-btn {
+  padding: 4px 11px; border-radius: 6px;
+  font-size: 12px; border: 1px solid var(--border);
+  background: white; color: var(--text-secondary);
+  cursor: pointer; transition: all .15s;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.mode-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+.streak-badge {
+  margin-left: auto;
+  background: linear-gradient(135deg, #fff8e1, #fff3cd);
+  border: 1px solid #f0d060;
+  border-radius: 20px;
+  padding: 3px 11px;
+  font-size: 12px;
+  color: #b8860b;
+  white-space: nowrap;
+}
+
+/* progress */
+.progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.progress-info { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.progress-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .3s; }
+.progress-pct { font-size: 12px; font-weight: 500; color: var(--accent); white-space: nowrap; }
+
+/* weight indicator */
+.weight-row { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+.weight-chip {
+  padding: 3px 9px; border-radius: 12px;
+  font-size: 11px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text-muted);
+  cursor: pointer; transition: all .12s;
+}
+.weight-chip.active-w { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+
+/* ═══ CARD ═══ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: box-shadow .2s;
+  margin-bottom: 12px;
+}
+.card:hover { box-shadow: var(--shadow-h); }
+.card.fresh { border-left: 3px solid var(--fresh); }
+.card.warn { border-left: 3px solid var(--warn); }
+.card.danger { border-left: 3px solid var(--danger); }
+.card-header {
+  padding: 11px 16px 9px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+}
+.card.warn .card-header { background: var(--warn-bg); }
+.card.danger .card-header { background: var(--danger-bg); }
+.q-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); }
+.q-type { font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
+.q-type.choice { background: #e8f4fd; color: #1a6fa0; }
+.q-type.multi { background: #e8f0fd; color: #3a1aa0; }
+.q-type.fill { background: #e8f8ee; color: #1a7a40; }
+.q-type.calc { background: #f3e8fd; color: #6a1aa0; }
+.q-type.short { background: #fdf3e8; color: #a05a1a; }
+.q-loc { font-size: 11px; color: var(--text-muted); background: var(--surface2); padding: 2px 7px; border-radius: 4px; }
+.q-topic { font-size: 11px; color: var(--text-secondary); margin-left: auto; display: flex; align-items: center; gap: 3px; }
+.q-topic span { color: var(--accent); }
+.err-badge { font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
+.card.warn .err-badge { background: #f5e0a0; color: var(--warn); }
+.card.danger .err-badge { background: #f5c8a0; color: var(--danger); }
+.q-weight-badge { font-size: 10px; padding: 1px 6px; border-radius: 10px; background: var(--accent-light); color: var(--accent); border: 1px solid #c0d8f0; }
+.card-menu-btn { background: none; border: none; cursor: pointer; font-size: 17px; color: var(--text-muted); padding: 0 3px; line-height: 1; }
+.card-menu-btn:hover { color: var(--text-primary); }
+.card-body { padding: 16px; }
+.question-text { font-size: 15px; line-height: 1.75; color: var(--text-primary); margin-bottom: 12px; font-family: 'Noto Serif SC', serif; }
+.question-text img { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; }
+.options-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
+.option {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all .15s;
+  font-size: 14px; line-height: 1.6;
+  user-select: none;
+}
+.option:hover { border-color: var(--accent); background: var(--accent-light); }
+.option.selected { border-color: var(--accent); background: var(--accent-light); }
+.option.correct-reveal { border-color: var(--green); background: var(--green-light); }
+.option.wrong-reveal { border-color: var(--danger); background: var(--danger-bg); }
+.opt-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; color: var(--text-muted); min-width: 16px; margin-top: 1px; }
+.answer-section { border-top: 1px dashed var(--border); margin-top: 12px; padding-top: 12px; display: none; animation: fadeIn .2s ease; }
+.answer-section.visible { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.answer-label { font-size: 10px; font-weight: 500; color: var(--text-muted); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 5px; }
+.answer-text { font-size: 14px; line-height: 1.8; color: var(--text-primary); background: var(--surface2); padding: 10px 13px; border-radius: 8px; border-left: 3px solid var(--green); }
+.explanation-label { font-size: 10px; font-weight: 500; color: var(--text-muted); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 5px; margin-top: 10px; }
+.explanation-text { font-size: 13px; line-height: 1.8; color: var(--text-secondary); background: #f8f6f2; padding: 10px 13px; border-radius: 8px; border-left: 3px solid var(--accent); }
+.reveal-btn {
+  width: 100%; padding: 9px; margin-top: 12px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; transition: all .15s; font-family: 'Noto Sans SC', sans-serif;
+}
+.reveal-btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+.multi-hint { font-size: 11px; color: var(--accent); padding: 4px 0 2px; }
+.action-row { display: flex; gap: 6px; padding: 11px 16px; border-top: 1px solid var(--border); background: var(--surface2); }
+.action-btn { flex: 1; padding: 8px 9px; border-radius: 8px; font-size: 13px; font-family: 'Noto Sans SC', sans-serif; cursor: pointer; border: 1px solid var(--border); transition: all .15s; font-weight: 500; }
+.btn-wrong { background: white; color: var(--danger); border-color: #f5c8a0; }
+.btn-wrong:hover { background: var(--danger-bg); border-color: var(--danger); }
+.btn-right { background: white; color: var(--green); border-color: #b0e0c0; }
+.btn-right:hover { background: var(--green-light); border-color: var(--green); }
+.btn-next { background: var(--accent); color: white; border-color: var(--accent); flex: 2; }
+.btn-next:hover { background: #245280; }
+.nav-arrows { display: flex; justify-content: center; gap: 10px; margin-top: 7px; }
+.arrow-btn { width: 33px; height: 33px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.arrow-btn:hover { border-color: var(--accent); color: var(--accent); }
+.empty-card { background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius); padding: 40px 22px; text-align: center; }
+.empty-icon { font-size: 36px; margin-bottom: 9px; }
+.empty-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+.empty-sub { font-size: 13px; color: var(--text-muted); }
+.cards-bar { display: flex; gap: 7px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+.ca-btn { padding: 5px 13px; border-radius: 8px; border: 1px dashed var(--border); background: transparent; font-size: 12px; color: var(--text-muted); cursor: pointer; transition: all .15s; font-family: 'Noto Sans SC', sans-serif; }
+.ca-btn:hover { border-color: var(--accent); color: var(--accent); }
+.ca-btn.g:hover { border-color: var(--green); color: var(--green); }
+
+/* ═══════════════════════════════════════════
+   MODALS
+═══════════════════════════════════════════ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 400;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 480px;
+  max-height: 93vh;
+  overflow-y: auto;
+}
+.modal-wide { max-width: 580px; }
+.modal-xl { max-width: 660px; }
+.modal-header {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0;
+  background: var(--surface); z-index: 1;
+}
+.modal-title { font-size: 14px; font-weight: 500; }
+.modal-close { background: none; border: none; font-size: 19px; cursor: pointer; color: var(--text-muted); line-height: 1; padding: 0; }
+.modal-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 7px; justify-content: flex-end; position: sticky; bottom: 0; background: var(--surface); }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+.form-input { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: 'Noto Sans SC', sans-serif; color: var(--text-primary); background: var(--surface); transition: border .15s; resize: vertical; }
+.form-input:focus { outline: none; border-color: var(--accent); }
+.form-select { padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'Noto Sans SC', sans-serif; background: var(--surface); color: var(--text-primary); }
+.btn-cancel { padding: 7px 15px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; cursor: pointer; font-family: 'Noto Sans SC', sans-serif; color: var(--text-secondary); }
+.btn-submit { padding: 7px 15px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: 'Noto Sans SC', sans-serif; }
+.btn-submit.green { background: var(--green); }
+.btn-submit.pink { background: var(--pink); }
+.btn-sec { padding: 7px 15px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; cursor: pointer; font-family: 'Noto Sans SC', sans-serif; color: var(--text-secondary); transition: all .15s; }
+.btn-sec:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+.menu-item { padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: background .12s; display: flex; align-items: center; gap: 9px; }
+.menu-item:hover { background: var(--surface2); }
+.menu-item.danger { color: var(--danger); }
+.menu-item.danger:hover { background: var(--danger-bg); }
+.ed-toolbar { display: flex; gap: 4px; margin-bottom: 4px; flex-wrap: wrap; }
+.ed-btn { padding: 2px 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface); font-size: 11px; cursor: pointer; color: var(--text-secondary); font-family: 'Noto Sans SC', sans-serif; transition: all .12s; }
+.ed-btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+.help-box { background: var(--accent-light); border: 1px solid #c0d8f0; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #2c5f8a; line-height: 1.8; }
+.help-box code { background: rgba(44,95,138,.15); padding: 1px 5px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.import-ta { min-height: 190px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.7; }
+.preview-wrap { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.preview-hd { padding: 7px 11px; background: var(--surface2); font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+.preview-badge { background: var(--accent); color: white; font-size: 11px; padding: 1px 8px; border-radius: 10px; }
+.preview-list { max-height: 240px; overflow-y: auto; }
+.pv-item { padding: 8px 11px; border-bottom: 1px solid var(--border); font-size: 12px; display: flex; align-items: flex-start; gap: 7px; }
+.pv-item:last-child { border-bottom: none; }
+.pv-type { font-size: 10px; padding: 1px 5px; border-radius: 3px; font-weight: 500; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+.pv-type.choice { background: #e8f4fd; color: #1a6fa0; }
+.pv-type.multi { background: #e8f0fd; color: #3a1aa0; }
+.pv-type.fill { background: #e8f8ee; color: #1a7a40; }
+.pv-type.calc { background: #f3e8fd; color: #6a1aa0; }
+.pv-type.short { background: #fdf3e8; color: #a05a1a; }
+.pv-body { flex: 1; min-width: 0; }
+.pv-q { color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pv-meta { color: var(--text-muted); margin-top: 2px; font-size: 11px; }
+.pv-sec { display: inline-block; background: #f0f7ff; color: var(--accent); padding: 1px 5px; border-radius: 3px; font-size: 10px; margin-left: 4px; }
+.om-list { display: flex; flex-direction: column; gap: 5px; }
+.om-ch { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.om-ch-hd { padding: 8px 11px; background: var(--surface2); display: flex; align-items: center; gap: 7px; }
+.om-ch-name { flex: 1; font-size: 13px; font-weight: 500; }
+.om-mini-btn { padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border); background: var(--surface); font-size: 11px; cursor: pointer; font-family: 'Noto Sans SC', sans-serif; transition: all .12s; color: var(--text-secondary); }
+.om-mini-btn:hover { border-color: var(--accent); color: var(--accent); }
+.om-mini-btn.d { color: var(--danger); }
+.om-mini-btn.d:hover { border-color: var(--danger); background: var(--danger-bg); }
+.om-secs { padding: 5px 9px; display: flex; flex-direction: column; gap: 3px; }
+.om-sec-row { display: flex; align-items: center; gap: 6px; padding: 4px 7px; border-radius: 6px; font-size: 12px; background: var(--surface); border: 1px solid transparent; }
+.om-sec-name { flex: 1; color: var(--text-secondary); }
+.om-sec-add { width: 100%; padding: 4px; border-radius: 6px; border: 1px dashed var(--border); background: transparent; font-size: 11px; color: var(--text-muted); cursor: pointer; font-family: 'Noto Sans SC', sans-serif; transition: all .15s; }
+.om-sec-add:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ═══ TOAST ═══ */
+.toast {
+  position: fixed;
+  bottom: 20px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1a1814; color: white;
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 13px; opacity: 0;
+  transition: all .25s; z-index: 999;
+  pointer-events: none; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.toast-success { background: #2d7a4a; }
+.toast.toast-error { background: #b83020; }
+.toast.toast-info { background: #2c5f8a; }
+
+/* ═══ LOADING ═══ */
+#loading-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,.7); z-index: 500; align-items: center; justify-content: center; }
+.spinner { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ═══════════════════════════════════════════
+   PARTICLE / REWARD SYSTEM
+═══════════════════════════════════════════ */
+#particle-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 350;
+}
+.candy-jar {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  width: 52px; height: 52px;
+  background: linear-gradient(135deg, #fff8e1, #fff3cd);
+  border: 2px solid #f0d060;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  cursor: pointer;
+  z-index: 340;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12);
+  transition: transform .2s;
+}
+.candy-jar:hover { transform: scale(1.08); }
+.candy-count {
+  position: absolute;
+  top: -5px; right: -5px;
+  background: var(--danger);
+  color: white;
+  font-size: 10px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════
+   DRAW CARD SYSTEM (占卜)
+═══════════════════════════════════════════ */
+.fortune-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.6);
+  z-index: 450;
+  align-items: center; justify-content: center;
+}
+.fortune-overlay.open { display: flex; }
+.fortune-scene {
+  perspective: 1000px;
+  width: 280px;
+  cursor: pointer;
+}
+.fortune-card {
+  width: 280px; height: 400px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform .7s ease;
+}
+.fortune-card.flipped { transform: rotateY(180deg); }
+.fortune-face, .fortune-back {
+  position: absolute; inset: 0;
+  border-radius: 18px;
+  backface-visibility: hidden;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px;
+}
+.fortune-face {
+  background: linear-gradient(135deg, #7c4dbd, #d4608a);
+  box-shadow: 0 20px 60px rgba(124,77,189,.5);
+}
+.fortune-face-deco { font-size: 60px; margin-bottom: 16px; }
+.fortune-face-hint { color: rgba(255,255,255,.7); font-size: 14px; }
+.fortune-back {
+  background: linear-gradient(135deg, #fff8e1, #fef3ff);
+  transform: rotateY(180deg);
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  gap: 16px;
+}
+.fortune-type { font-size: 12px; color: var(--accent2); font-weight: 500; letter-spacing: .1em; }
+.fortune-emoji { font-size: 48px; }
+.fortune-text { font-size: 16px; line-height: 1.7; text-align: center; color: var(--text-primary); font-family: 'Noto Serif SC', serif; }
+.fortune-close { margin-top: 16px; padding: 8px 20px; background: var(--accent2); color: white; border: none; border-radius: 20px; font-size: 13px; cursor: pointer; font-family: 'Noto Sans SC', sans-serif; }
+
+/* ═══════════════════════════════════════════
+   EXAM PAPER SYSTEM
+═══════════════════════════════════════════ */
+.paper-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.paper-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all .15s;
+  font-size: 12px;
+}
+.paper-card:hover { border-color: var(--accent); background: var(--accent-light); }
+.paper-card-title { font-weight: 500; color: var(--text-primary); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.paper-card-meta { color: var(--text-muted); font-size: 11px; }
+.paper-card-new {
+  border-style: dashed;
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; color: var(--text-muted);
+  min-height: 58px;
+}
+.paper-card-new:hover { border-color: var(--green); color: var(--green); }
+
+/* today summary share card */
+.share-card {
+  background: linear-gradient(135deg, #1a1814, #2c3e55);
+  border-radius: 16px;
+  padding: 24px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.share-card::before {
+  content: '';
+  position: absolute;
+  top: -50px; right: -50px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(44,95,138,.4), transparent);
+}
+.share-logo { font-family: 'Noto Serif SC', serif; font-size: 13px; opacity: .6; margin-bottom: 16px; }
+.share-num { font-family: 'JetBrains Mono', monospace; font-size: 40px; font-weight: 500; line-height: 1; }
+.share-num-sub { font-size: 13px; opacity: .6; margin-top: 4px; }
+.share-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+.share-mini { background: rgba(255,255,255,.08); border-radius: 8px; padding: 8px; text-align: center; }
+.share-mini-num { font-family: 'JetBrains Mono', monospace; font-size: 16px; }
+.share-mini-lbl { font-size: 10px; opacity: .55; margin-top: 2px; }
+.share-quote { font-size: 12px; opacity: .6; margin-top: 16px; font-style: italic; font-family: 'Noto Serif SC', serif; line-height: 1.6; }
+
+/* exam date selector */
+.date-tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.date-tab { padding: 4px 10px; border-radius: 14px; font-size: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); cursor: pointer; transition: all .12s; }
+.date-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 900px) {
+  .outline-panel { display: none; }
+  .sidebar { display: none; }
+  .main-inner { padding: 10px 10px 48px; }
+  .stats-row .stat-label { display: none; }
+  .modal-wide, .modal-xl { max-width: 100%; }
+  .paper-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .streak-badge { display: none; }
+}
 </style>
 </head>
 <body>
+
+<!-- ═══ PARTICLES & JAR ═══ -->
+<canvas id="particle-canvas"></canvas>
+<div class="candy-jar" onclick="showJarModal()" title="我的收藏罐" id="candy-jar">
+  🍬
+  <div class="candy-count" id="candy-count">0</div>
+</div>
+
+<!-- ═══ FORTUNE OVERLAY ═══ -->
+<div class="fortune-overlay" id="fortune-overlay">
+  <div class="fortune-scene" onclick="flipFortuneCard()">
+    <div class="fortune-card" id="fortune-card">
+      <div class="fortune-face">
+        <div class="fortune-face-deco">🌙</div>
+        <div class="fortune-face-hint">点击翻牌</div>
+      </div>
+      <div class="fortune-back" id="fortune-back">
+        <div class="fortune-type" id="fortune-type">LOADING</div>
+        <div class="fortune-emoji" id="fortune-emoji">✨</div>
+        <div class="fortune-text" id="fortune-text"></div>
+        <button class="fortune-close" onclick="closeFortuneOverlay()">收好了 ✨</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="loading-overlay" style="display:none"><div class="spinner"></div></div>
-<nav><div class="nav-logo">📚 刷题本</div><div style="flex:1"></div><div id="nav-user" style="display:flex;align-items:center;gap:8px"></div></nav>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+  <div class="nav-logo">📚 刷题本<span>·Studio</span></div>
+  <div class="nav-divider"></div>
+  <button class="nav-btn" onclick="openExamPaperModal()">📋 试卷</button>
+  <button class="nav-btn" onclick="openSummaryModal()">📊 今日总结</button>
+  <div style="flex:1"></div>
+  <div id="nav-user" style="display:flex;align-items:center;gap:8px"></div>
+</nav>
+
+<!-- ═══ SUBJECT BAR ═══ -->
 <div class="subject-bar">
   <span class="subject-label">科目：</span>
   <div id="subject-bar-inner" style="display:flex;gap:6px;align-items:center"></div>
 </div>
+
+<!-- ═══ CHAPTER BAR ═══ -->
 <div class="chapter-bar" id="chapter-bar">
   <span class="chbar-label">章节：</span>
   <div id="chapter-bar-inner" style="display:flex;gap:5px;align-items:center;flex-wrap:nowrap"></div>
 </div>
-<div class="main">
-  <div class="outline-panel">
-    <div class="panel-title">
-      <span>章节大纲</span>
-      <span class="panel-gear" onclick="openManageModal()" title="管理章节">⚙</span>
-    </div>
-    <div id="outline-tree" class="outline-tree"></div>
-    <div class="outline-btns">
-      <button class="o-btn" onclick="openManageModal()">⚙ 管理章节结构</button>
-      <button class="o-btn" onclick="openImportOutlineModal()">📋 批量导入目录</button>
-    </div>
-  </div>
-  <div class="content-area">
-    <div class="stats-row">
-      <div class="stat-chip"><span class="stat-num blue" id="stat-fresh">0</span><div class="stat-label">未练习</div></div>
-      <div class="stat-chip"><span class="stat-num yellow" id="stat-warn">0</span><div class="stat-label">待巩固</div></div>
-      <div class="stat-chip"><span class="stat-num orange" id="stat-danger">0</span><div class="stat-label">易错题</div></div>
-      <div class="stat-chip"><span class="stat-num green" id="stat-done">0</span><div class="stat-label">已掌握</div></div>
-    </div>
-    <div class="mode-row">
-      <button class="mode-btn active" onclick="setMode('all',this)">顺序练习</button>
-      <button class="mode-btn" onclick="setMode('random',this)">随机刷题</button>
-      <button class="mode-btn" onclick="setMode('wrong',this)">只看错题</button>
-    </div>
-    <div class="progress-row">
-      <span class="progress-info" id="progress-info">第 0 / 0 题</span>
-      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-      <span class="progress-pct" id="progress-pct">0%</span>
-    </div>
-    <div id="cards-area"></div>
-  </div>
-</div>
 
-<!-- ═══ MODALS ═══ -->
+<!-- ═══ APP BODY ═══ -->
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="折叠侧边栏">◀</button>
+    <div class="sidebar-inner">
+
+      <!-- 今日成果 -->
+      <div>
+        <div class="sb-section-title">今日成果</div>
+        <div class="today-card">
+          <div class="today-num" id="sb-today-total">0</div>
+          <div class="today-sub">今日完成题数</div>
+          <div class="today-grid">
+            <div class="today-mini">
+              <div class="today-mini-num green" id="sb-today-acc">—</div>
+              <div class="today-mini-lbl">正确率</div>
+            </div>
+            <div class="today-mini">
+              <div class="today-mini-num orange" id="sb-today-wrong">0</div>
+              <div class="today-mini-lbl">错题数</div>
+            </div>
+            <div class="today-mini">
+              <div class="today-mini-num" style="color:var(--warn)" id="sb-streak">0</div>
+              <div class="today-mini-lbl">连续答对</div>
+            </div>
+            <div class="today-mini">
+              <div class="today-mini-num blue" id="sb-today-right">0</div>
+              <div class="today-mini-lbl">正确题数</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 考试日期 -->
+      <div id="exam-date-section">
+        <div class="sb-section-title">考试倒计时</div>
+        <div class="exam-badge" id="exam-badge-display" style="display:none">
+          <div class="exam-badge-title" id="exam-badge-title">考试日期</div>
+          <div class="exam-badge-days" id="exam-badge-days">—</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">天后考试</div>
+        </div>
+        <button class="o-btn" onclick="openExamDateModal()" style="margin-top:4px">⏰ 设置考试日期</button>
+      </div>
+
+      <!-- 占卜 -->
+      <div>
+        <div class="sb-section-title">今日占卜</div>
+        <div class="draw-card" onclick="openFortune()" id="draw-card-btn">
+          <div class="draw-card-title">✨ 每日抽卡</div>
+          <div class="draw-card-sub" id="draw-card-sub">点击抽取今日运势</div>
+          <div class="draw-deco">🌙</div>
+        </div>
+      </div>
+
+      <!-- 快捷入口 -->
+      <div>
+        <div class="sb-section-title">快捷入口</div>
+        <div class="sb-icon-row">
+          <button class="sb-icon-btn" onclick="window._openAddQ()"><span class="sb-ico">＋</span>添加题目</button>
+          <button class="sb-icon-btn" onclick="window._openImport()"><span class="sb-ico">📥</span>批量导入</button>
+          <button class="sb-icon-btn" onclick="openExamPaperModal()"><span class="sb-ico">📋</span>试卷系统</button>
+          <button class="sb-icon-btn" onclick="openManageModal()"><span class="sb-ico">⚙</span>管理章节</button>
+          <button class="sb-icon-btn" onclick="openSummaryModal()"><span class="sb-ico">📊</span>生成总结</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="main-inner">
+
+      <!-- OUTLINE PANEL -->
+      <div class="outline-panel">
+        <div class="panel-title">
+          <span>章节大纲</span>
+          <span class="panel-gear" onclick="openManageModal()" title="管理章节">⚙</span>
+        </div>
+        <button class="outline-refresh-btn" onclick="refreshOutlineSort()" title="按题量自动排序">
+          🔄 按题量排序
+        </button>
+        <div id="outline-tree" class="outline-tree"></div>
+        <div class="outline-btns">
+          <button class="o-btn" onclick="openManageModal()">⚙ 管理章节结构</button>
+          <button class="o-btn" onclick="openImportOutlineModal()">📋 批量导入目录</button>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="content-area">
+        <div class="stats-row">
+          <div class="stat-chip"><span class="stat-num blue" id="stat-fresh">0</span><div class="stat-label">未练习</div></div>
+          <div class="stat-chip"><span class="stat-num yellow" id="stat-warn">0</span><div class="stat-label">待巩固</div></div>
+          <div class="stat-chip"><span class="stat-num orange" id="stat-danger">0</span><div class="stat-label">易错题</div></div>
+          <div class="stat-chip"><span class="stat-num green" id="stat-done">0</span><div class="stat-label">已掌握</div></div>
+        </div>
+
+        <div class="mode-streak-row">
+          <button class="mode-btn active" onclick="setMode('all',this)">顺序练习</button>
+          <button class="mode-btn" onclick="setMode('random',this)">随机刷题</button>
+          <button class="mode-btn" onclick="setMode('wrong',this)">只看错题</button>
+          <button class="mode-btn" onclick="setMode('weighted',this)">智能权重</button>
+          <div class="streak-badge" id="streak-badge">🔥 连续 <span id="streak-num">0</span> 题</div>
+        </div>
+
+        <div class="progress-row">
+          <span class="progress-info" id="progress-info">第 0 / 0 题</span>
+          <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+          <span class="progress-pct" id="progress-pct">0%</span>
+        </div>
+
+        <div id="cards-area"></div>
+      </div>
+
+    </div><!-- /main-inner -->
+  </div><!-- /main -->
+
+</div><!-- /app-body -->
+
+<!-- ═══════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════ -->
+
 <!-- 科目 -->
 <div class="modal-overlay" id="add-subject-modal">
   <div class="modal">
     <div class="modal-header"><span class="modal-title">添加科目</span><button class="modal-close" onclick="closeModal('add-subject-modal')">×</button></div>
-    <div class="modal-body"><div class="form-group"><label class="form-label">科目名称</label><input class="form-input" id="new-subject-name" placeholder="例：化工经济"></div></div>
-    <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('add-subject-modal')">取消</button><button class="btn-submit" onclick="submitAddSubject()">创建</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">科目名称</label><input class="form-input" id="new-subject-name" placeholder="例：化工经济"></div>
+      <div class="form-group"><label class="form-label">考试日期（可选）</label>
+        <div class="date-tabs">
+          <div class="date-tab active" onclick="setNewSubjectDateType('none',this)">长期学习</div>
+          <div class="date-tab" onclick="setNewSubjectDateType('date',this)">指定日期</div>
+        </div>
+        <input class="form-input" id="new-subject-date" type="date" style="display:none">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('add-subject-modal')">取消</button>
+      <button class="btn-submit" onclick="submitAddSubject()">创建</button>
+    </div>
   </div>
 </div>
+
+<!-- 考试日期设置 -->
+<div class="modal-overlay" id="exam-date-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">⏰ 设置考试日期</span><button class="modal-close" onclick="closeModal('exam-date-modal')">×</button></div>
+    <div class="modal-body">
+      <div class="help-box">设置考试日期后，「智能权重」模式会根据剩余时间自动调整刷题策略：临近考试时加重易错题，平时则均衡练习。</div>
+      <div class="form-group"><label class="form-label">当前科目：<span id="exam-subject-name" style="color:var(--accent)"></span></label></div>
+      <div class="form-group">
+        <label class="form-label">策略模式</label>
+        <div class="date-tabs">
+          <div class="date-tab active" id="exam-tab-none" onclick="setExamDateType('none',this)">♾ 长期主义</div>
+          <div class="date-tab" id="exam-tab-date" onclick="setExamDateType('date',this)">📅 指定日期</div>
+        </div>
+      </div>
+      <div id="exam-date-input-wrap" style="display:none">
+        <div class="form-group"><label class="form-label">考试日期</label><input class="form-input" id="exam-date-input" type="date"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('exam-date-modal')">取消</button>
+      <button class="btn-submit" onclick="saveExamDate()">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- 管理章节 -->
 <div class="modal-overlay" id="manage-modal">
   <div class="modal modal-wide">
@@ -288,12 +1084,14 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18
       <div style="display:flex;gap:7px;flex-wrap:wrap">
         <button class="btn-sec" onclick="openChapterEditModal(null,null)">＋ 添加章</button>
         <button class="btn-sec" onclick="openImportOutlineModal()">📋 批量导入目录</button>
+        <button class="btn-sec" onclick="refreshOutlineSort()">🔄 按题量排序</button>
       </div>
       <div class="om-list" id="manage-list"></div>
     </div>
     <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('manage-modal')">关闭</button></div>
   </div>
 </div>
+
 <!-- 批量导入目录 -->
 <div class="modal-overlay" id="import-outline-modal">
   <div class="modal modal-wide">
@@ -312,9 +1110,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18
 
 # 第二章 传热原理
 ## 第一节 导热
-## 第二节 对流传热
-
-# 第三章 化工经济（无节）"></textarea>
+## 第二节 对流传热"></textarea>
       </div>
       <div id="outline-preview" style="display:none">
         <div class="preview-wrap">
@@ -330,6 +1126,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18
     </div>
   </div>
 </div>
+
 <!-- 编辑/添加章 -->
 <div class="modal-overlay" id="ch-edit-modal">
   <div class="modal">
@@ -338,6 +1135,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18
     <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('ch-edit-modal')">取消</button><button class="btn-submit" id="ch-edit-submit">保存</button></div>
   </div>
 </div>
+
 <!-- 编辑/添加节 -->
 <div class="modal-overlay" id="sec-edit-modal">
   <div class="modal">
@@ -346,6 +1144,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18
     <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('sec-edit-modal')">取消</button><button class="btn-submit" id="sec-edit-submit">保存</button></div>
   </div>
 </div>
+
 <!-- 添加题目 -->
 <div class="modal-overlay" id="add-q-modal">
   <div class="modal modal-wide">
@@ -374,33 +1173,32 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18
           <button class="ed-btn" onclick="openImgModal('q-text')">🖼 插入图片</button>
           <button class="ed-btn" onclick="ins('q-text','______','')">__ 填空</button>
         </div>
-        <textarea class="form-input" id="q-text" rows="4" placeholder="输入题目..."></textarea>
+        <textarea class="form-input" id="q-text" rows="4" placeholder="题目内容（支持LaTeX公式和HTML图片）"></textarea>
       </div>
       <div id="q-opts-wrap">
         <div class="form-group"><label class="form-label">选项</label>
-          <input class="form-input" id="q-a" placeholder="A. " style="margin-bottom:4px">
-          <input class="form-input" id="q-b" placeholder="B. " style="margin-bottom:4px">
-          <input class="form-input" id="q-c" placeholder="C. " style="margin-bottom:4px">
-          <input class="form-input" id="q-d" placeholder="D. ">
+          <input class="form-input" id="q-a" placeholder="A. "><input class="form-input" id="q-b" placeholder="B. " style="margin-top:4px">
+          <input class="form-input" id="q-c" placeholder="C. " style="margin-top:4px"><input class="form-input" id="q-d" placeholder="D. " style="margin-top:4px">
         </div>
       </div>
-      <div class="form-group"><label class="form-label">参考答案</label><textarea class="form-input" id="q-ans" rows="2" placeholder="输入答案..."></textarea></div>
+      <div class="form-group"><label class="form-label">参考答案</label><textarea class="form-input" id="q-ans" rows="2"></textarea></div>
       <div class="form-group">
         <label class="form-label">解析（可选）</label>
         <div class="ed-toolbar">
           <button class="ed-btn" onclick="ins('q-expl','\\( ','\\) ')">∫ 行内公式</button>
           <button class="ed-btn" onclick="openImgModal('q-expl')">🖼 插入图片</button>
         </div>
-        <textarea class="form-input" id="q-expl" rows="3" placeholder="输入解析..."></textarea>
+        <textarea class="form-input" id="q-expl" rows="3"></textarea>
       </div>
     </div>
     <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('add-q-modal')">取消</button><button class="btn-submit" onclick="submitAddQ()">添加</button></div>
   </div>
 </div>
+
 <!-- 编辑题目 -->
 <div class="modal-overlay" id="edit-q-modal">
   <div class="modal modal-wide">
-    <div class="modal-header"><span class="modal-title">✏️ 编辑题目</span><button class="modal-close" onclick="closeModal('edit-q-modal')">×</button></div>
+    <div class="modal-header"><span class="modal-title">编辑题目</span><button class="modal-close" onclick="closeModal('edit-q-modal')">×</button></div>
     <div class="modal-body">
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <div class="form-group" style="flex:1;min-width:130px"><label class="form-label">题型</label>
@@ -412,27 +1210,23 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18
         <div class="form-group" style="flex:1;min-width:130px"><label class="form-label">章</label>
           <select class="form-select" id="eq-ch" onchange="syncSecSel('eq-ch','eq-sec')"></select>
         </div>
-        <div class="form-group" style="flex:1;min-width:130px"><label class="form-label">节（可选）</label>
+        <div class="form-group" style="flex:1;min-width:130px"><label class="form-label">节</label>
           <select class="form-select" id="eq-sec"></select>
         </div>
       </div>
-      <div class="form-group"><label class="form-label">知识点标签</label><input class="form-input" id="eq-point" placeholder="例：伯努利方程"></div>
+      <div class="form-group"><label class="form-label">知识点标签</label><input class="form-input" id="eq-point"></div>
       <div class="form-group">
         <label class="form-label">题目内容</label>
         <div class="ed-toolbar">
           <button class="ed-btn" onclick="ins('eq-text','\\( ','\\) ')">∫ 行内公式</button>
-          <button class="ed-btn" onclick="ins('eq-text','\\[ ','\\] ')">∑ 块公式</button>
           <button class="ed-btn" onclick="openImgModal('eq-text')">🖼 插入图片</button>
-          <button class="ed-btn" onclick="ins('eq-text','______','')">__ 填空</button>
         </div>
         <textarea class="form-input" id="eq-text" rows="4"></textarea>
       </div>
       <div id="eq-opts-wrap">
         <div class="form-group"><label class="form-label">选项</label>
-          <input class="form-input" id="eq-a" placeholder="A. " style="margin-bottom:4px">
-          <input class="form-input" id="eq-b" placeholder="B. " style="margin-bottom:4px">
-          <input class="form-input" id="eq-c" placeholder="C. " style="margin-bottom:4px">
-          <input class="form-input" id="eq-d" placeholder="D. ">
+          <input class="form-input" id="eq-a" placeholder="A. "><input class="form-input" id="eq-b" placeholder="B. " style="margin-top:4px">
+          <input class="form-input" id="eq-c" placeholder="C. " style="margin-top:4px"><input class="form-input" id="eq-d" placeholder="D. " style="margin-top:4px">
         </div>
       </div>
       <div class="form-group"><label class="form-label">参考答案</label><textarea class="form-input" id="eq-ans" rows="2"></textarea></div>
@@ -448,6 +1242,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18
     <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('edit-q-modal')">取消</button><button class="btn-submit" onclick="submitEditQ()">保存修改</button></div>
   </div>
 </div>
+
 <!-- 批量导入题目 -->
 <div class="modal-overlay" id="import-modal">
   <div class="modal modal-xl">
@@ -460,7 +1255,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18
         <code>知识点：</code>xxx&emsp;<code>题目：</code>内容&emsp;<code>答案：</code>内容&emsp;<code>解析：</code>内容（可选）
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <div class="form-group" style="flex:1;min-width:130px"><label class="form-label">默认章（可被题目字段覆盖）</label>
+        <div class="form-group" style="flex:1;min-width:130px"><label class="form-label">默认章</label>
           <select class="form-select" id="imp-ch" onchange="syncSecSel('imp-ch','imp-sec')"><option value="">-- 不指定 --</option></select>
         </div>
         <div class="form-group" style="flex:1;min-width:130px"><label class="form-label">默认节</label>
@@ -471,22 +1266,23 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 18
         <textarea class="form-input import-ta" id="imp-text" rows="9" placeholder="#单选题
 章节：第一章 流体力学基础
 节：第二节 伯努利方程
-知识点：能量守恒
-题目：下列关于伯努利方程适用条件的说法，正确的是？
+题目：下列关于伯努利方程的说法，正确的是？
 A. 可压缩流体
 B. 不可压缩理想流体
 C. 有能量损失的实际流体
 D. 任意流体
 答案：B
-解析：伯努利方程适用于不可压缩理想流体稳定流动。
+解析：伯努利方程适用于不可压缩理想流体。
 
 ---
 
-#填空题
-章节：第一章 流体力学基础
-节：第一节 流体静力学
-题目：流体静压强公式为 ______
-答案：\( p = \rho g h \)"></textarea>
+#多选题
+题目：下列属于传热方式的是？
+A. 导热
+B. 对流
+C. 辐射
+D. 渗透
+答案：ABC"></textarea>
       </div>
       <div style="display:flex;gap:7px;justify-content:flex-end">
         <button class="btn-sec" onclick="previewImport()">🔍 解析预览</button>
@@ -504,6 +1300,7 @@ D. 任意流体
     </div>
   </div>
 </div>
+
 <!-- 题目菜单 -->
 <div class="modal-overlay" id="card-menu-modal">
   <div class="modal" style="max-width:250px">
@@ -514,6 +1311,7 @@ D. 任意流体
     </div>
   </div>
 </div>
+
 <!-- 插入图片 -->
 <div class="modal-overlay" id="img-modal">
   <div class="modal" style="max-width:400px">
@@ -524,7 +1322,7 @@ D. 任意流体
       </div>
       <div style="text-align:center;font-size:11px;color:var(--text-muted);margin:2px 0 8px">— 或者直接填写图片 URL —</div>
       <div class="form-group"><label class="form-label">图片 URL</label><input class="form-input" id="img-url" placeholder="https://example.com/image.png"></div>
-      <div class="form-group"><label class="form-label">宽度（如 100% 或 400px）</label><input class="form-input" id="img-w" value="100%"></div>
+      <div class="form-group"><label class="form-label">宽度</label><input class="form-input" id="img-w" value="100%"></div>
       <div id="img-pv" style="display:none;margin-top:4px"><img id="img-pv-img" style="max-width:100%;border-radius:8px;border:1px solid var(--border)"></div>
     </div>
     <div class="modal-footer">
@@ -535,7 +1333,149 @@ D. 任意流体
   </div>
 </div>
 
-<!-- ═══ SCRIPT ═══ -->
+<!-- ═══ 试卷系统 ═══ -->
+<div class="modal-overlay" id="exam-paper-modal">
+  <div class="modal modal-xl">
+    <div class="modal-header"><span class="modal-title">📋 试卷系统</span><button class="modal-close" onclick="closeModal('exam-paper-modal')">×</button></div>
+    <div class="modal-body">
+      <!-- tabs -->
+      <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:12px">
+        <button id="ep-tab-new" onclick="switchEpTab('new')" style="flex:1;padding:9px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;border-bottom:2px solid var(--accent);color:var(--accent);font-weight:500">生成试卷</button>
+        <button id="ep-tab-saved" onclick="switchEpTab('saved')" style="flex:1;padding:9px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;border-bottom:2px solid transparent;color:var(--text-secondary)">已保存试卷</button>
+      </div>
+
+      <!-- new paper -->
+      <div id="ep-new">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="form-group" style="flex:1;min-width:130px"><label class="form-label">题量</label>
+            <select class="form-select" id="ep-count">
+              <option value="10">10题</option><option value="20">20题</option><option value="30">30题</option><option value="50">50题</option><option value="0">全部</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;min-width:130px"><label class="form-label">章节范围</label>
+            <select class="form-select" id="ep-chapter"><option value="">全部章节</option></select>
+          </div>
+          <div class="form-group" style="flex:1;min-width:130px"><label class="form-label">题型组合</label>
+            <select class="form-select" id="ep-types">
+              <option value="all">全部题型</option>
+              <option value="choice,multi">选择题</option>
+              <option value="fill">填空题</option>
+              <option value="calc,short">主观题</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label class="form-label">试卷名称（可选）</label><input class="form-input" id="ep-name" placeholder="例：第一章综合练习"></div>
+        <div style="display:flex;gap:7px">
+          <button class="btn-sec" onclick="generatePaper()">🎲 生成试卷</button>
+          <button class="btn-sec" onclick="savePaperTemplate()">📌 保存为模板</button>
+        </div>
+        <div id="ep-preview" style="display:none">
+          <div class="preview-wrap">
+            <div class="preview-hd">试卷预览 <span class="preview-badge" id="ep-cnt">0题</span></div>
+            <div class="preview-list" id="ep-list" style="max-height:200px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- saved papers -->
+      <div id="ep-saved" style="display:none">
+        <div class="paper-grid" id="paper-grid">
+          <div class="paper-card paper-card-new" onclick="switchEpTab('new')">
+            <span>＋</span> 新建试卷
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('exam-paper-modal')">关闭</button>
+      <button class="btn-submit" id="ep-start-btn" onclick="startPaper()" style="display:none">▶ 开始练习</button>
+    </div>
+  </div>
+</div>
+
+<!-- 今日总结 -->
+<div class="modal-overlay" id="summary-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">📊 今日学习总结</span><button class="modal-close" onclick="closeModal('summary-modal')">×</button></div>
+    <div class="modal-body">
+      <div class="share-card" id="share-card-content">
+        <div class="share-logo">📚 刷题本·Studio</div>
+        <div class="share-num" id="sum-total">0</div>
+        <div class="share-num-sub">题目已完成</div>
+        <div class="share-grid">
+          <div class="share-mini">
+            <div class="share-mini-num" id="sum-acc">—</div>
+            <div class="share-mini-lbl">正确率</div>
+          </div>
+          <div class="share-mini">
+            <div class="share-mini-num" id="sum-wrong">0</div>
+            <div class="share-mini-lbl">错题数</div>
+          </div>
+          <div class="share-mini">
+            <div class="share-mini-num" id="sum-streak">0</div>
+            <div class="share-mini-lbl">最长连对</div>
+          </div>
+        </div>
+        <div class="share-quote" id="sum-quote"></div>
+      </div>
+      <div style="text-align:center;font-size:12px;color:var(--text-muted)">长按卡片或截图即可分享 📸</div>
+    </div>
+    <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('summary-modal')">关闭</button></div>
+  </div>
+</div>
+
+<!-- 糖罐 -->
+<div class="modal-overlay" id="jar-modal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header"><span class="modal-title">🍬 我的收藏罐</span><button class="modal-close" onclick="closeModal('jar-modal')">×</button></div>
+    <div class="modal-body" style="text-align:center">
+      <div style="font-size:48px;margin:8px 0">🍯</div>
+      <div style="font-size:22px;font-weight:600;color:var(--accent);font-family:'JetBrains Mono',monospace" id="jar-count-display">0</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:4px">颗糖果（连续答对奖励）</div>
+      <div style="margin-top:16px;font-size:13px;color:var(--text-secondary);line-height:1.7">每连续答对 <strong>5 题</strong>，就会有可爱小物从天而降！<br>继续努力，让糖罐满起来 🌟</div>
+    </div>
+    <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('jar-modal')">好的～</button></div>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-title">📚 刷题本 · 登录</span>
+      <button class="modal-close" onclick="closeModal('auth-modal')">×</button>
+    </div>
+    <div style="display:flex;border-bottom:1px solid var(--border)">
+      <button id="auth-tab-login" onclick="switchAuthTab('login')" style="flex:1;padding:10px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;border-bottom:2px solid var(--accent);color:var(--accent);font-weight:500">登录</button>
+      <button id="auth-tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:10px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;color:var(--text-secondary);border-bottom:2px solid transparent">注册</button>
+      <button id="auth-tab-reset" onclick="switchAuthTab('reset')" style="flex:1;padding:10px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;color:var(--text-secondary);border-bottom:2px solid transparent">找回密码</button>
+    </div>
+    <div id="login-form" style="display:flex;flex-direction:column;gap:12px;padding:20px">
+      <div class="form-group"><label class="form-label">邮箱</label><input class="form-input" id="login-email" type="email" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="form-group"><label class="form-label">密码</label><input class="form-input" id="login-pass" type="password" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitLogin()"></div>
+      <button class="btn-submit" onclick="submitLogin()" style="width:100%;padding:11px;font-size:14px">登录</button>
+      <div style="text-align:center;font-size:12px;color:var(--text-muted)">没有账号？<span style="color:var(--accent);cursor:pointer" onclick="switchAuthTab('register')">立即注册</span></div>
+    </div>
+    <div id="register-form" style="display:none;flex-direction:column;gap:12px;padding:20px">
+      <div class="form-group"><label class="form-label">昵称</label><input class="form-input" id="reg-name" type="text" placeholder="你的名字"></div>
+      <div class="form-group"><label class="form-label">邮箱</label><input class="form-input" id="reg-email" type="email" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="form-group"><label class="form-label">密码（至少6位）</label><input class="form-input" id="reg-pass" type="password" placeholder="••••••" autocomplete="new-password"></div>
+      <div class="form-group"><label class="form-label">确认密码</label><input class="form-input" id="reg-pass2" type="password" placeholder="••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitRegister()"></div>
+      <button class="btn-submit green" onclick="submitRegister()" style="width:100%;padding:11px;font-size:14px">创建账号</button>
+      <div style="text-align:center;font-size:12px;color:var(--text-muted)">已有账号？<span style="color:var(--accent);cursor:pointer" onclick="switchAuthTab('login')">直接登录</span></div>
+    </div>
+    <div id="reset-form" style="display:none;flex-direction:column;gap:12px;padding:20px">
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.6">输入注册邮箱，我们将发送密码重置链接。</div>
+      <div class="form-group"><label class="form-label">邮箱</label><input class="form-input" id="reset-email" type="email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')submitReset()"></div>
+      <button class="btn-submit" onclick="submitReset()" style="width:100%;padding:11px;font-size:14px">发送重置邮件</button>
+      <div style="text-align:center;font-size:12px;color:var(--text-muted)"><span style="color:var(--accent);cursor:pointer" onclick="switchAuthTab('login')">← 返回登录</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore,collection,doc,getDoc,getDocs,addDoc,updateDoc,deleteDoc,query,where,orderBy,writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -555,16 +1495,35 @@ const db=getFirestore(app);
 const auth=getAuth(app);
 const storage=getStorage(app);
 
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
 const S={
   subjects:[],currentSubject:null,
   chapters:[],sections:[],
   currentChapter:null,currentSection:null,
   questions:[],currentIndex:0,mode:'all',
   editingQId:null,pendingImport:[],pendingOutline:[],
-  imgTarget:null,
-  currentUser:null   // ← logged-in user
+  imgTarget:null,currentUser:null,
+  // Session stats
+  todayTotal:0,todayRight:0,todayWrong:0,
+  streak:0,maxStreak:0,
+  // Reward
+  candyCount:0,
+  // Paper
+  pendingPaper:null,savedPapers:[],
+  // Fortune
+  drawnToday:false,
+  // Sidebar
+  sidebarCollapsed:false,
+  // Exam dates per subjectId
+  examDates:{},
+  // New subject date type
+  newSubjectDateType:'none',
+  examDateType:'none',
 };
 
+/* ═══ UTILS ═══ */
 const $=id=>document.getElementById(id);
 const ec=n=>(!n||n===0)?'fresh':n<5?'warn':'danger';
 const qLabel=t=>({choice:'单选',multi:'多选',fill:'填空',calc:'计算',short:'简答'}[t]||t);
@@ -579,9 +1538,337 @@ function toast(msg,type='info'){
   setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},2800);
 }
 function loading(on){$('loading-overlay').style.display=on?'flex':'none';}
-
-// ═══ AUTH ═══
 function uid(){return S.currentUser?.uid||null;}
+
+/* ═══════════════════════════════════════════
+   MODULE: PARTICLE SYSTEM
+═══════════════════════════════════════════ */
+const canvas=$('particle-canvas');
+const ctx=canvas.getContext('2d');
+let particles=[];
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+resizeCanvas();
+window.addEventListener('resize',resizeCanvas);
+
+function spawnParticles(){
+  const icons=['⭐','🌸','✨','💫','🌟','🍬','🤍','💎'];
+  for(let i=0;i<18;i++){
+    particles.push({
+      x:Math.random()*canvas.width,
+      y:-20-Math.random()*60,
+      vy:0.6+Math.random()*1.2,
+      vx:(Math.random()-.5)*0.8,
+      icon:icons[Math.floor(Math.random()*icons.length)],
+      size:14+Math.random()*12,
+      alpha:1,
+      life:0,
+      maxLife:200+Math.random()*100,
+      targetX:canvas.width/2,
+      targetY:canvas.height-80,
+      homing:false,
+      homingDelay:100+Math.random()*80,
+    });
+  }
+}
+function drawParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles=particles.filter(p=>{
+    p.life++;
+    if(p.life>p.homingDelay){
+      p.homing=true;
+      const dx=p.targetX-p.x,dy=p.targetY-p.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<10){p.alpha-=0.1;return p.alpha>0;}
+      p.vx+=(dx/dist)*0.08;p.vy+=(dy/dist)*0.08;
+      p.vx*=0.97;p.vy*=0.97;
+    }
+    p.x+=p.vx;p.y+=p.vy;
+    if(!p.homing)p.alpha=Math.max(0,1-p.life/p.maxLife*0.3);
+    ctx.globalAlpha=p.alpha;
+    ctx.font=`${p.size}px serif`;
+    ctx.fillText(p.icon,p.x,p.y);
+    ctx.globalAlpha=1;
+    return p.life<p.maxLife;
+  });
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+function triggerReward(){
+  S.candyCount++;
+  updateCandyDisplay();
+  spawnParticles();
+  toast('🌟 连续5题全对！奖励一颗糖果～','success');
+  // shake jar
+  const jar=$('candy-jar');
+  jar.style.transform='scale(1.3) rotate(15deg)';
+  setTimeout(()=>jar.style.transform='',500);
+}
+function updateCandyDisplay(){
+  $('candy-count').textContent=S.candyCount;
+  $('jar-count-display').textContent=S.candyCount;
+}
+
+/* ═══════════════════════════════════════════
+   MODULE: SIDEBAR
+═══════════════════════════════════════════ */
+window.toggleSidebar=()=>{
+  S.sidebarCollapsed=!S.sidebarCollapsed;
+  const sb=$('sidebar');
+  const btn=$('sidebar-toggle');
+  if(S.sidebarCollapsed){sb.classList.add('collapsed');btn.textContent='▶';}
+  else{sb.classList.remove('collapsed');btn.textContent='◀';}
+};
+function updateSidebarStats(){
+  $('sb-today-total').textContent=S.todayTotal;
+  $('sb-today-right').textContent=S.todayRight;
+  $('sb-today-wrong').textContent=S.todayWrong;
+  $('sb-streak').textContent=S.streak;
+  const acc=S.todayTotal>0?Math.round(S.todayRight/S.todayTotal*100)+'%':'—';
+  $('sb-today-acc').textContent=acc;
+  $('streak-num').textContent=S.streak;
+}
+
+/* ═══════════════════════════════════════════
+   MODULE: EXAM DATE
+═══════════════════════════════════════════ */
+function updateExamDateDisplay(){
+  if(!S.currentSubject)return;
+  const ed=S.examDates[S.currentSubject.id];
+  const badge=$('exam-badge-display');
+  if(!ed||ed==='none'){badge.style.display='none';return;}
+  const diff=Math.ceil((new Date(ed)-new Date())/(1000*60*60*24));
+  if(diff<0){badge.style.display='none';return;}
+  badge.style.display='block';
+  $('exam-badge-title').textContent=S.currentSubject.name;
+  $('exam-badge-days').textContent=diff;
+}
+window.openExamDateModal=()=>{
+  if(!S.currentSubject){toast('请先选择科目','error');return;}
+  $('exam-subject-name').textContent=S.currentSubject.name;
+  const cur=S.examDates[S.currentSubject.id];
+  if(cur&&cur!=='none'){
+    setExamDateType('date',document.getElementById('exam-tab-date'));
+    $('exam-date-input').value=cur;
+  } else {
+    setExamDateType('none',document.getElementById('exam-tab-none'));
+  }
+  openModal('exam-date-modal');
+};
+window.setExamDateType=(type,el)=>{
+  S.examDateType=type;
+  document.querySelectorAll('[id^=exam-tab-]').forEach(b=>{b.classList.remove('active');});
+  if(el)el.classList.add('active');
+  $('exam-date-input-wrap').style.display=type==='date'?'block':'none';
+};
+window.saveExamDate=()=>{
+  if(!S.currentSubject)return;
+  const id=S.currentSubject.id;
+  if(S.examDateType==='none'){
+    S.examDates[id]='none';
+  } else {
+    const d=$('exam-date-input').value;
+    if(!d){toast('请选择日期','error');return;}
+    S.examDates[id]=d;
+    // persist to localStorage
+    try{localStorage.setItem('examDates',JSON.stringify(S.examDates));}catch(e){}
+  }
+  try{localStorage.setItem('examDates',JSON.stringify(S.examDates));}catch(e){}
+  updateExamDateDisplay();
+  closeModal('exam-date-modal');
+  toast('考试日期已保存','success');
+};
+function loadExamDates(){
+  try{const r=localStorage.getItem('examDates');if(r)S.examDates=JSON.parse(r);}catch(e){}
+}
+window.setNewSubjectDateType=(t,el)=>{
+  S.newSubjectDateType=t;
+  document.querySelectorAll('#add-subject-modal .date-tab').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  $('new-subject-date').style.display=t==='date'?'block':'none';
+};
+
+/* ═══════════════════════════════════════════
+   MODULE: FORTUNE / DRAW CARD
+═══════════════════════════════════════════ */
+const FORTUNES=[
+  {type:'学习鼓励',emoji:'🌱',text:'今天的努力，是明天开花的种子。每道题都是你砌下的砖。'},
+  {type:'学习鼓励',emoji:'🔥',text:'你已经比昨天的自己聪明一点了。这就是学习的魔力。'},
+  {type:'学习鼓励',emoji:'🌙',text:'困难的题是在等你准备好。今天多一分理解，明天少一分困惑。'},
+  {type:'今日运势',emoji:'⭐',text:'今日运势极佳，适合攻克难题。遇到不会的，多看一眼，答案就在那里。'},
+  {type:'今日运势',emoji:'🌸',text:'今天的你特别有灵气，直觉往往是正确的。相信自己。'},
+  {type:'今日运势',emoji:'🌈',text:'今日思路清晰，适合整理笔记和归纳错题。'},
+  {type:'可爱卡片',emoji:'🐣',text:'不会的题不要慌，你已经知道自己不会了，这就是进步！'},
+  {type:'可爱卡片',emoji:'🍰',text:'你今天能来刷题，就已经比90%的人更努力了～'},
+  {type:'可爱卡片',emoji:'🦋',text:'每个考到高分的人，都曾在你现在站的地方努力过。'},
+  {type:'学习鼓励',emoji:'💎',text:'知识不会背叛你。你投入的每一分钟都在账上。'},
+  {type:'今日运势',emoji:'🌟',text:'今天适合复习旧题，那里藏着你已经掌握却不自知的宝藏。'},
+  {type:'可爱卡片',emoji:'🐠',text:'就算只做了3道题，也比一道都没做强很多。出发！'},
+];
+window.openFortune=()=>{
+  const todayKey='fortune_'+new Date().toDateString();
+  const drawn=localStorage.getItem(todayKey);
+  if(drawn){
+    const f=JSON.parse(drawn);
+    showFortuneCard(f,true);return;
+  }
+  const f=FORTUNES[Math.floor(Math.random()*FORTUNES.length)];
+  localStorage.setItem(todayKey,JSON.stringify(f));
+  showFortuneCard(f,false);
+};
+function showFortuneCard(f,alreadyFlipped){
+  $('fortune-type').textContent=f.type;
+  $('fortune-emoji').textContent=f.emoji;
+  $('fortune-text').textContent=f.text;
+  $('fortune-card').classList.remove('flipped');
+  $('fortune-overlay').classList.add('open');
+  $('draw-card-sub').textContent='今日已抽';
+  if(alreadyFlipped){setTimeout(()=>$('fortune-card').classList.add('flipped'),200);}
+}
+window.flipFortuneCard=()=>{
+  if(!$('fortune-card').classList.contains('flipped')){
+    $('fortune-card').classList.add('flipped');
+  }
+};
+window.closeFortuneOverlay=()=>{$('fortune-overlay').classList.remove('open');};
+
+/* ═══════════════════════════════════════════
+   MODULE: EXAM PAPER SYSTEM
+═══════════════════════════════════════════ */
+window.openExamPaperModal=()=>{
+  if(!S.currentSubject){toast('请先选择科目','error');return;}
+  fillChSel('ep-chapter','',true);
+  renderSavedPapers();
+  openModal('exam-paper-modal');
+};
+window.switchEpTab=(tab)=>{
+  ['new','saved'].forEach(t=>{
+    $('ep-'+t).style.display='none';
+    const btn=$('ep-tab-'+t);
+    if(btn){btn.style.borderBottomColor='transparent';btn.style.color='var(--text-secondary)';btn.style.fontWeight='400';}
+  });
+  $('ep-'+tab).style.display='block';
+  const ab=$('ep-tab-'+tab);
+  if(ab){ab.style.borderBottomColor='var(--accent)';ab.style.color='var(--accent)';ab.style.fontWeight='500';}
+};
+window.generatePaper=()=>{
+  if(!S.currentSubject){toast('请先选择科目','error');return;}
+  let pool=[...S.questions];
+  const chId=$('ep-chapter').value;
+  if(chId)pool=pool.filter(q=>q.chapterId===chId);
+  const types=$('ep-types').value;
+  if(types!=='all'){const ts=types.split(',');pool=pool.filter(q=>ts.includes(q.type));}
+  // shuffle
+  pool=pool.sort(()=>Math.random()-.5);
+  const count=parseInt($('ep-count').value)||0;
+  if(count>0)pool=pool.slice(0,count);
+  if(!pool.length){toast('该范围内没有题目','error');return;}
+  S.pendingPaper=pool;
+  // render preview
+  $('ep-preview').style.display='block';
+  $('ep-cnt').textContent=pool.length+'题';
+  $('ep-start-btn').style.display='block';
+  const list=$('ep-list');list.innerHTML='';
+  pool.forEach((q,i)=>{
+    const div=document.createElement('div');div.className='pv-item';
+    div.innerHTML=`<span class="pv-type ${qClass(q.type)}">${qLabel(q.type)}</span><div class="pv-body"><div class="pv-q">${i+1}. ${q.question.replace(/<[^>]*>/g,'').substring(0,60)}</div></div>`;
+    list.appendChild(div);
+  });
+};
+window.savePaperTemplate=()=>{
+  const name=$('ep-name').value.trim()||'练习试卷 '+new Date().toLocaleDateString();
+  const paper={
+    id:Date.now().toString(),
+    name,
+    subjectId:S.currentSubject?.id,
+    count:parseInt($('ep-count').value)||20,
+    chapterId:$('ep-chapter').value||null,
+    types:$('ep-types').value,
+    createdAt:Date.now(),
+  };
+  S.savedPapers.push(paper);
+  try{localStorage.setItem('savedPapers_'+(uid()||'anon'),JSON.stringify(S.savedPapers));}catch(e){}
+  renderSavedPapers();
+  toast('试卷模板已保存','success');
+};
+function renderSavedPapers(){
+  const grid=$('paper-grid');grid.innerHTML='';
+  const newBtn=document.createElement('div');
+  newBtn.className='paper-card paper-card-new';
+  newBtn.innerHTML='<span>＋</span> 新建试卷';
+  newBtn.onclick=()=>switchEpTab('new');
+  grid.appendChild(newBtn);
+  S.savedPapers.filter(p=>p.subjectId===S.currentSubject?.id).forEach(p=>{
+    const card=document.createElement('div');
+    card.className='paper-card';
+    const date=new Date(p.createdAt).toLocaleDateString();
+    card.innerHTML=`<div class="paper-card-title">${p.name}</div><div class="paper-card-meta">${p.count}题 · ${date}</div>`;
+    card.onclick=()=>{loadPaperTemplate(p);};
+    grid.appendChild(card);
+  });
+}
+function loadPaperTemplate(p){
+  $('ep-count').value=p.count;
+  $('ep-chapter').value=p.chapterId||'';
+  $('ep-types').value=p.types;
+  $('ep-name').value=p.name;
+  switchEpTab('new');
+  generatePaper();
+}
+window.startPaper=()=>{
+  if(!S.pendingPaper||!S.pendingPaper.length){toast('请先生成试卷','error');return;}
+  S.questions=S.pendingPaper;
+  S.currentIndex=0;
+  closeModal('exam-paper-modal');
+  renderCards();renderStats();
+  toast(`📋 试卷已开始，共 ${S.pendingPaper.length} 题`,'success');
+};
+function loadSavedPapers(){
+  try{const r=localStorage.getItem('savedPapers_'+(uid()||'anon'));if(r)S.savedPapers=JSON.parse(r);}catch(e){}
+}
+
+/* ═══════════════════════════════════════════
+   MODULE: SUMMARY
+═══════════════════════════════════════════ */
+window.openSummaryModal=()=>{
+  const acc=S.todayTotal>0?Math.round(S.todayRight/S.todayTotal*100)+'%':'—';
+  $('sum-total').textContent=S.todayTotal;
+  $('sum-acc').textContent=acc;
+  $('sum-wrong').textContent=S.todayWrong;
+  $('sum-streak').textContent=S.maxStreak;
+  const quotes=[
+    '学习是最好的投资，今天的你已经超越了昨天。',
+    '每一道题都是一块砖，你的知识大厦正在建成。',
+    '不积跬步，无以至千里。今天又迈出了一步。',
+    '努力不会背叛你，知识也不会。继续加油！',
+    '你的坚持，将在未来某一天被证明是正确的。',
+  ];
+  $('sum-quote').textContent=quotes[Math.floor(Math.random()*quotes.length)];
+  openModal('summary-modal');
+};
+
+/* ═══════════════════════════════════════════
+   MODULE: JAR
+═══════════════════════════════════════════ */
+window.showJarModal=()=>{openModal('jar-modal');};
+
+/* ═══════════════════════════════════════════
+   MODULE: OUTLINE REFRESH (sort by count)
+═══════════════════════════════════════════ */
+window.refreshOutlineSort=()=>{
+  if(!S.chapters.length){toast('暂无章节','info');return;}
+  // compute counts
+  const counts={};
+  S.chapters.forEach(ch=>{counts[ch.id]=S.questions.filter(q=>q.chapterId===ch.id).length;});
+  // sort chapters by count desc
+  S.chapters.sort((a,b)=>(counts[b.id]||0)-(counts[a.id]||0));
+  renderOutline();renderChapterBar();
+  toast('已按题量排序（仅本地视图）','info');
+};
+
+/* ═══════════════════════════════════════════
+   MODULE: AUTH
+═══════════════════════════════════════════ */
 function renderNavUser(){
   const el=$('nav-user');if(!el)return;
   if(S.currentUser){
@@ -600,7 +1887,9 @@ window._signOut=async()=>{
   toast('已退出登录','info');
 };
 
-// ═══ FIREBASE ═══
+/* ═══════════════════════════════════════════
+   MODULE: FIREBASE DATA
+═══════════════════════════════════════════ */
 async function loadSubjects(){
   if(!uid()){renderEmptyState();return;}
   const snap=await getDocs(query(collection(db,'subjects'),where('userId','==',uid())));
@@ -609,14 +1898,19 @@ async function loadSubjects(){
   if(S.subjects.length>0) await selectSubject(S.subjects[0].id);
   else renderEmptyState();
 }
-async function createSubject(name){
+async function createSubject(name,examDate){
   const ref=await addDoc(collection(db,'subjects'),{name,userId:uid(),createdAt:Date.now()});
+  if(examDate&&examDate!=='none'){
+    S.examDates[ref.id]=examDate;
+    try{localStorage.setItem('examDates',JSON.stringify(S.examDates));}catch(e){}
+  }
   await loadSubjects(); await selectSubject(ref.id);
 }
 async function selectSubject(id){
   S.currentSubject=S.subjects.find(s=>s.id===id);
   S.currentChapter=null;S.currentSection=null;
   renderSubjectBar();
+  updateExamDateDisplay();
   await loadChapSec(id);
 }
 async function loadChapSec(subId){
@@ -652,11 +1946,39 @@ async function loadQuestions(){
   else if(S.currentChapter) snap=await getDocs(query(collection(db,'questions'),where('subjectId','==',S.currentSubject.id),where('chapterId','==',S.currentChapter)));
   else snap=await getDocs(query(collection(db,'questions'),where('subjectId','==',S.currentSubject.id)));
   let qs=snap.docs.map(d=>({id:d.id,...d.data()}));
-  if(S.mode==='wrong') qs=qs.filter(q=>q.errorCount>0);
-  if(S.mode==='random') qs=qs.sort(()=>Math.random()-.5);
-  S.questions=qs;S.currentIndex=0;
+  applyMode(qs);
+}
+function applyMode(qs){
+  let sorted=[...qs];
+  if(S.mode==='wrong') sorted=sorted.filter(q=>q.errorCount>0);
+  else if(S.mode==='random') sorted=sorted.sort(()=>Math.random()-.5);
+  else if(S.mode==='weighted') sorted=weightedSort(sorted);
+  S.questions=sorted;S.currentIndex=0;
   renderCards();renderStats();
 }
+
+/* ═══ WEIGHT SYSTEM ═══ */
+function computeWeight(q){
+  // base weight by error count
+  const err=q.errorCount||0;
+  const right=q.correctCount||0;
+  let w=1;
+  if(err===0&&right===0) w=1.2; // never seen
+  else if(err>0) w=1+err*0.5;
+  if(right>0) w=w/Math.sqrt(right);
+  // adjust by exam date urgency
+  const subId=S.currentSubject?.id;
+  const ed=S.examDates[subId];
+  if(ed&&ed!=='none'){
+    const days=Math.ceil((new Date(ed)-new Date())/(1000*60*60*24));
+    if(days>0&&days<30) w*=1+(err>0?1.5:0.5); // near exam: boost errors
+  }
+  return w;
+}
+function weightedSort(qs){
+  return [...qs].map(q=>({q,w:computeWeight(q)})).sort((a,b)=>b.w-a.w).map(x=>x.q);
+}
+
 async function markQ(id,correct){
   const ref=doc(db,'questions',id);
   const d=(await getDoc(ref)).data();
@@ -664,6 +1986,12 @@ async function markQ(id,correct){
   else await updateDoc(ref,{errorCount:(d.errorCount||0)+1});
   const q=S.questions.find(q=>q.id===id);
   if(q){if(correct)q.correctCount=(q.correctCount||0)+1;else q.errorCount=(q.errorCount||0)+1;}
+  // session stats
+  S.todayTotal++;
+  if(correct){S.todayRight++;S.streak++;S.maxStreak=Math.max(S.maxStreak,S.streak);}
+  else{S.todayWrong++;S.streak=0;}
+  if(S.streak>0&&S.streak%5===0) triggerReward();
+  updateSidebarStats();
   renderCurrentCard();renderStats();
 }
 async function addQ(data){
@@ -689,7 +2017,9 @@ async function deleteQ(id){
   toast('已删除','info');await loadQuestions();
 }
 
-// ═══ PARSE ═══
+/* ═══════════════════════════════════════════
+   MODULE: PARSE
+═══════════════════════════════════════════ */
 function parseQuestions(text){
   const TM={'单选题':'choice','多选题':'multi','填空题':'fill','计算题':'calc','简答题':'short'};
   const blocks=text.split(/\n\s*---\s*\n/);
@@ -755,13 +2085,27 @@ function resolveSecByHint(hint,chId){
   return pool.find(s=>s.name.toLowerCase().replace(/\s/g,'').includes(h)||h.includes(s.name.toLowerCase().replace(/\s/g,'')));
 }
 
-// ═══ RENDER ═══
+/* ═══════════════════════════════════════════
+   MODULE: RENDER
+═══════════════════════════════════════════ */
 function renderSubjectBar(){
   const bar=$('subject-bar-inner');bar.innerHTML='';
   S.subjects.forEach(s=>{
     const c=document.createElement('div');
     c.className='subject-chip'+(S.currentSubject?.id===s.id?' active':'');
-    c.textContent=s.name;c.onclick=()=>selectSubject(s.id);bar.appendChild(c);
+    c.textContent=s.name;
+    // exam tag
+    const ed=S.examDates[s.id];
+    if(ed&&ed!=='none'){
+      const diff=Math.ceil((new Date(ed)-new Date())/(1000*60*60*24));
+      if(diff>=0){
+        const tag=document.createElement('span');
+        tag.className='subject-exam-tag';
+        tag.textContent=diff+'天';
+        c.appendChild(tag);
+      }
+    }
+    c.onclick=()=>selectSubject(s.id);bar.appendChild(c);
   });
   const add=document.createElement('div');
   add.className='subject-chip add-chip';add.textContent='＋ 添加科目';
@@ -800,11 +2144,12 @@ function renderOutline(){
     const secs=secsOf(ch.id);
     const chActive=S.currentChapter===ch.id&&!S.currentSection;
     const isOpen=S.currentChapter===ch.id;
+    const chCount=S.questions.filter(q=>q.chapterId===ch.id).length;
     const wrap=document.createElement('div');wrap.className='oc-wrap';
     const row=document.createElement('div');row.className='oc-row';
     const main=document.createElement('div');
     main.className='oc-main'+(isOpen?' oc-open':'')+(chActive?' active':'');
-    main.innerHTML=`<span class="oc-arrow">▶</span>${ch.name}`;
+    main.innerHTML=`<span class="oc-arrow">▶</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ch.name}</span><span class="oc-count">${chCount}</span>`;
     main.onclick=()=>{S.currentChapter=ch.id;S.currentSection=null;loadQuestions();renderOutline();renderChapterBar();};
     const acts=document.createElement('div');acts.className='oc-acts';
     const eb=document.createElement('button');eb.className='oc-btn';eb.title='编辑';eb.textContent='✎';
@@ -815,10 +2160,10 @@ function renderOutline(){
     const sl=document.createElement('div');sl.className='os-list'+(isOpen?' open':'');
     secs.forEach(sec=>{
       const sa=S.currentSection===sec.id;
+      const cnt=S.questions.filter(q=>q.sectionId===sec.id).length;
       const sr=document.createElement('div');sr.className='os-row';
       const sm=document.createElement('div');sm.className='os-main'+(sa?' active':'');
-      const cnt=S.questions.filter(q=>q.sectionId===sec.id).length;
-      sm.innerHTML=`${sec.name}<span class="os-cnt">${cnt}</span>`;
+      sm.innerHTML=`<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${sec.name}</span><span class="os-cnt">${cnt}</span>`;
       sm.onclick=()=>{S.currentChapter=ch.id;S.currentSection=sec.id;loadQuestions();renderOutline();renderChapterBar();};
       const sa2=document.createElement('div');sa2.className='os-acts';
       const se=document.createElement('button');se.className='oc-btn';se.title='编辑';se.textContent='✎';
@@ -834,7 +2179,7 @@ function renderOutline(){
 }
 function renderManageList(){
   const list=$('manage-list');list.innerHTML='';
-  if(!S.chapters.length){list.innerHTML='<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:18px">还没有章节，点击上方"添加章"</div>';return;}
+  if(!S.chapters.length){list.innerHTML='<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:18px">还没有章节</div>';return;}
   S.chapters.forEach(ch=>{
     const secs=secsOf(ch.id);
     const div=document.createElement('div');div.className='om-ch';
@@ -857,7 +2202,7 @@ function renderManageList(){
 }
 function renderStats(){
   const qs=S.questions;
-  $('stat-fresh').textContent=qs.filter(q=>!q.errorCount||q.errorCount===0).length;
+  $('stat-fresh').textContent=qs.filter(q=>!q.correctCount&&!q.errorCount).length;
   $('stat-warn').textContent=qs.filter(q=>q.errorCount>=1&&q.errorCount<5).length;
   $('stat-danger').textContent=qs.filter(q=>q.errorCount>=5).length;
   $('stat-done').textContent=qs.filter(q=>(q.correctCount||0)>0&&(!q.errorCount||q.errorCount===0)).length;
@@ -866,14 +2211,25 @@ function renderStats(){
   const pct=tot?Math.round((S.currentIndex/tot)*100):0;
   $('progress-fill').style.width=pct+'%';$('progress-pct').textContent=pct+'%';
 }
+
+/* ═══════════════════════════════════════════
+   MODULE: CARD RENDER (fixed multi-select)
+═══════════════════════════════════════════ */
 function renderCards(){
   if(!S.questions.length){
-    $('cards-area').innerHTML=`<div class="empty-card"><div class="empty-icon">📭</div><div class="empty-title">暂无题目</div><div class="empty-sub">手动添加或批量导入题目</div>
-      <div class="cards-bar" style="margin-top:14px"><button class="btn-submit" onclick="window._openAddQ()">＋ 添加题目</button><button class="btn-submit green" onclick="window._openImport()">📥 文本导入</button></div></div>`;
+    $('cards-area').innerHTML=`<div class="empty-card">
+      <div class="empty-icon">📭</div>
+      <div class="empty-title">暂无题目</div>
+      <div class="empty-sub">手动添加或批量导入题目</div>
+      <div class="cards-bar" style="margin-top:14px">
+        <button class="btn-submit" onclick="window._openAddQ()">＋ 添加题目</button>
+        <button class="btn-submit green" onclick="window._openImport()">📥 文本导入</button>
+      </div></div>`;
     renderStats();return;
   }
   renderCurrentCard();
 }
+
 function renderCurrentCard(){
   const q=S.questions[S.currentIndex];if(!q)return;
   const cls=ec(q.errorCount||0);
@@ -882,10 +2238,19 @@ function renderCurrentCard(){
   const sec=S.sections.find(s=>s.id===q.sectionId);
   const loc=[ch?.name,sec?.name].filter(Boolean);
   const locTag=loc.length?`<span class="q-loc">📍 ${loc.join(' › ')}</span>`:'';
+  const isMulti=q.type==='multi';
+  const L=['A','B','C','D','E'];
   let body='';
-  if(q.type==='choice'||q.type==='multi'){
-    const L=['A','B','C','D','E'];
-    body=`<div class="options-list" id="opts-${q.id}">${(q.options||[]).map((o,i)=>`<div class="option" onclick="window._selOpt(this,'opts-${q.id}')"><span class="opt-label">${L[i]}</span><span>${o}</span></div>`).join('')}</div>`;
+  if(q.type==='choice'||isMulti){
+    const multiHint=isMulti?`<div class="multi-hint">多选题：点击选项可切换选中/取消</div>`:'';
+    // Each option gets a unique data-index for reliable selection
+    body=`${multiHint}<div class="options-list" id="opts-${q.id}">
+      ${(q.options||[]).map((o,i)=>`
+        <div class="option" data-idx="${i}" onclick="window._selOpt(this,'opts-${q.id}',${isMulti})">
+          <span class="opt-label">${L[i]}</span>
+          <span>${o}</span>
+        </div>`).join('')}
+    </div>`;
   }
   const expl=(q.explanation||'').trim()?`<div class="explanation-label">解析</div><div class="explanation-text">${q.explanation}</div>`:'';
   $('cards-area').innerHTML=`
@@ -914,17 +2279,30 @@ function renderCurrentCard(){
         <button class="action-btn btn-next" onclick="window._next()">下一题 →</button>
       </div>
     </div>
-    <div class="nav-arrows"><button class="arrow-btn" onclick="window._prev()">←</button><button class="arrow-btn" onclick="window._next()">→</button></div>
-    <div class="cards-bar"><button class="ca-btn" onclick="window._openAddQ()">＋ 添加题目</button><button class="ca-btn g" onclick="window._openImport()">📥 文本导入</button></div>`;
+    <div class="nav-arrows">
+      <button class="arrow-btn" onclick="window._prev()">←</button>
+      <button class="arrow-btn" onclick="window._next()">→</button>
+    </div>
+    <div class="cards-bar">
+      <button class="ca-btn" onclick="window._openAddQ()">＋ 添加题目</button>
+      <button class="ca-btn g" onclick="window._openImport()">📥 文本导入</button>
+    </div>`;
   if(window.MathJax)MathJax.typesetPromise();
   renderStats();
 }
-function renderEmptyState(){$('cards-area').innerHTML=`<div class="empty-card"><div class="empty-icon">📚</div><div class="empty-title">还没有科目</div><div class="empty-sub">先添加一个科目开始吧</div><button class="btn-submit" onclick="openModal('add-subject-modal')" style="margin-top:14px">＋ 添加科目</button></div>`;}
+function renderEmptyState(){
+  $('cards-area').innerHTML=`<div class="empty-card">
+    <div class="empty-icon">📚</div>
+    <div class="empty-title">还没有科目</div>
+    <div class="empty-sub">先添加一个科目开始吧</div>
+    <button class="btn-submit" onclick="openModal('add-subject-modal')" style="margin-top:14px">＋ 添加科目</button>
+  </div>`;
+}
 
-// section select sync
-function fillChSel(selId,selectedId=''){
+/* ═══ SELECT HELPERS ═══ */
+function fillChSel(selId,selectedId='',includeAll=false){
   const sel=$(selId);if(!sel)return;
-  sel.innerHTML='<option value="">-- 不指定章 --</option>';
+  sel.innerHTML=includeAll?'<option value="">全部章节</option>':'<option value="">-- 不指定章 --</option>';
   S.chapters.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;if(c.id===selectedId)o.selected=true;sel.appendChild(o);});
 }
 function fillSecSel(selId,chId,selectedId=''){
@@ -938,12 +2316,56 @@ window.syncTypeForm=(prefix)=>{
   $(prefix+'-opts-wrap').style.display=(t==='choice'||t==='multi')?'block':'none';
 };
 
-// ═══ WINDOW ACTIONS ═══
-window._reveal=()=>{$('ans-main').classList.add('visible');$('reveal-btn').style.display='none';if(window.MathJax)MathJax.typesetPromise();};
-window._mark=async(correct)=>{const q=S.questions[S.currentIndex];if(!q)return;loading(true);await markQ(q.id,correct);loading(false);toast(correct?'✓ 答对了':'✗ 答错了',correct?'success':'error');setTimeout(()=>window._next(),400);};
-window._next=()=>{if(S.currentIndex<S.questions.length-1){S.currentIndex++;renderCurrentCard();}else toast('已是最后一题 🎉','success');};
+/* ═══════════════════════════════════════════
+   MODULE: WINDOW ACTIONS (interaction)
+═══════════════════════════════════════════ */
+window._reveal=()=>{
+  $('ans-main').classList.add('visible');
+  $('reveal-btn').style.display='none';
+  // highlight correct options
+  const q=S.questions[S.currentIndex];
+  if(q&&(q.type==='choice'||q.type==='multi')){
+    const L=['A','B','C','D','E'];
+    const correctLetters=q.answer.toUpperCase().split('').filter(c=>/[A-E]/.test(c));
+    const opts=document.getElementById('opts-'+q.id);
+    if(opts){
+      opts.querySelectorAll('.option').forEach((el,i)=>{
+        const letter=L[i];
+        if(correctLetters.includes(letter)){
+          el.classList.add('correct-reveal');
+        } else if(el.classList.contains('selected')){
+          el.classList.add('wrong-reveal');
+        }
+      });
+    }
+  }
+  if(window.MathJax)MathJax.typesetPromise();
+};
+
+window._mark=async(correct)=>{
+  const q=S.questions[S.currentIndex];if(!q)return;
+  loading(true);await markQ(q.id,correct);loading(false);
+  toast(correct?'✓ 答对了':'✗ 答错了',correct?'success':'error');
+  setTimeout(()=>window._next(),400);
+};
+window._next=()=>{
+  if(S.currentIndex<S.questions.length-1){S.currentIndex++;renderCurrentCard();}
+  else toast('已是最后一题 🎉','success');
+};
 window._prev=()=>{if(S.currentIndex>0){S.currentIndex--;renderCurrentCard();}};
-window._selOpt=(el,gid)=>{document.getElementById(gid)?.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');};
+
+// ★ FIXED: multi-select toggle, single-select exclusive
+window._selOpt=(el,gid,isMulti)=>{
+  if(isMulti){
+    // toggle
+    el.classList.toggle('selected');
+  } else {
+    // exclusive
+    document.getElementById(gid)?.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+};
+
 window._menu=(qid)=>{
   openModal('card-menu-modal');
   $('menu-edit').onclick=()=>{closeModal('card-menu-modal');window._openEdit(qid);};
@@ -976,14 +2398,10 @@ window._openEdit=(qid)=>{
   openModal('edit-q-modal');
 };
 
-// ═══ MODAL HELPERS ═══
+/* ═══ MODAL HELPERS ═══ */
 window.openModal=(id)=>$(id).classList.add('open');
 window.closeModal=(id)=>$(id).classList.remove('open');
-
-window.openManageModal=()=>{
-  if(!S.currentSubject){toast('请先选择科目','error');return;}
-  renderManageList();openModal('manage-modal');
-};
+window.openManageModal=()=>{if(!S.currentSubject){toast('请先选择科目','error');return;}renderManageList();openModal('manage-modal');};
 window.openImportOutlineModal=()=>{
   if(!S.currentSubject){toast('请先选择科目','error');return;}
   $('outline-text').value='';$('outline-preview').style.display='none';$('outline-confirm-btn').style.display='none';
@@ -1008,7 +2426,6 @@ window.confirmOutlineImport=async()=>{
   loading(true);
   for(const ch of parsed){
     const chId=await createChapter(ch.name);
-    // reload sections state for this subject before adding sections
     if(ch.sections.length){
       await loadChapSec(S.currentSubject.id);
       for(const secName of ch.sections) await createSection(chId,secName);
@@ -1020,7 +2437,6 @@ window.confirmOutlineImport=async()=>{
   renderManageList();renderChapterBar();renderOutline();
   toast(`✅ 已导入 ${parsed.length} 章`,'success');S.pendingOutline=[];
 };
-
 function openChapterEditModal(id,name){
   $('ch-edit-title').textContent=id?'编辑章':'添加章';
   $('ch-edit-name').value=name||'';
@@ -1035,7 +2451,6 @@ function openChapterEditModal(id,name){
   openModal('ch-edit-modal');
 }
 window.openChapterEditModal=openChapterEditModal;
-
 function openSectionEditModal(id,name,chapterId){
   $('sec-edit-title').textContent=id?'编辑节':'添加节';
   $('sec-edit-name').value=name||'';
@@ -1050,7 +2465,6 @@ function openSectionEditModal(id,name,chapterId){
   openModal('sec-edit-modal');
 }
 window.openSectionEditModal=openSectionEditModal;
-
 async function confirmDelChapter(id,name){
   if(!confirm(`确定删除章「${name}」？\n该章下所有节也会删除。`))return;
   loading(true);await deleteChapter(id);await loadChapSec(S.currentSubject.id);loading(false);
@@ -1062,10 +2476,13 @@ async function confirmDelSection(id,name){
   renderManageList();renderChapterBar();renderOutline();toast('节已删除','info');
 }
 
+/* ═══ SUBMIT HANDLERS ═══ */
 window.submitAddSubject=async()=>{
   const name=$('new-subject-name').value.trim();if(!name){toast('请输入科目名称','error');return;}
-  loading(true);await createSubject(name);loading(false);
-  $('new-subject-name').value='';closeModal('add-subject-modal');toast('科目已创建','success');
+  const examDate=S.newSubjectDateType==='date'?$('new-subject-date').value:null;
+  loading(true);await createSubject(name,examDate);loading(false);
+  $('new-subject-name').value='';$('new-subject-date').value='';
+  closeModal('add-subject-modal');toast('科目已创建','success');
 };
 window.submitAddQ=async()=>{
   const type=$('q-type').value,question=$('q-text').value.trim(),answer=$('q-ans').value.trim();
@@ -1098,7 +2515,6 @@ window.submitEditQ=async()=>{
   await updateQ(id,{type,question,options,answer,explanation,pointName,chapterId,sectionId,pointId:pointName?pointName.replace(/\s/g,'_'):null});
   loading(false);closeModal('edit-q-modal');toast('题目已更新','success');await loadQuestions();
 };
-
 window.previewImport=()=>{
   const text=$('imp-text').value.trim();if(!text){toast('请粘贴题目文本','error');return;}
   const parsed=parseQuestions(text);S.pendingImport=parsed;
@@ -1111,7 +2527,7 @@ window.previewImport=()=>{
     const sec=ch?resolveSecByHint(q.secHint,ch.id):null;
     const secTag=ch?`<span class="pv-sec">${[ch.name,sec?.name].filter(Boolean).join(' › ')}</span>`:'';
     const div=document.createElement('div');div.className='pv-item';
-    div.innerHTML=`<span class="pv-type ${q.type}">${qLabel(q.type)}</span><div class="pv-body"><div class="pv-q">${i+1}. ${q.question.replace(/<[^>]*>/g,'').substring(0,55)}… ${secTag}</div><div class="pv-meta">答：${q.answer.substring(0,40)}</div></div>`;
+    div.innerHTML=`<span class="pv-type ${q.type}">${qLabel(q.type)}</span><div class="pv-body"><div class="pv-q">${i+1}. ${q.question.replace(/<[^>]*>/g,'').substring(0,55)} ${secTag}</div><div class="pv-meta">答：${q.answer.substring(0,40)}</div></div>`;
     list.appendChild(div);
   });
   $('imp-confirm').style.display='block';
@@ -1137,22 +2553,15 @@ window.confirmImport=async()=>{
   $('imp-text').value='';$('import-preview').style.display='none';$('imp-confirm').style.display='none';S.pendingImport=[];
 };
 
-// image insert
+/* ═══ IMAGE ═══ */
 window.ins=(targetId,before,after)=>{
   const ta=$(targetId);if(!ta)return;
   const s=ta.selectionStart,e=ta.selectionEnd,sel=ta.value.substring(s,e);
   ta.value=ta.value.substring(0,s)+before+sel+after+ta.value.substring(e);
   ta.focus();ta.selectionStart=s+before.length;ta.selectionEnd=s+before.length+sel.length;
 };
-window.openImgModal=(targetId)=>{
-  S.imgTarget=targetId;$('img-url').value='';$('img-w').value='100%';$('img-pv').style.display='none';openModal('img-modal');
-};
-// Also expose triggerImgUpload for direct upload from toolbar (calls modal's upload)
-// Note: triggerImgUpload is defined in the init section below
-window.previewImg=()=>{
-  const url=$('img-url').value.trim();if(!url){toast('请输入URL','error');return;}
-  $('img-pv-img').src=url;$('img-pv').style.display='block';
-};
+window.openImgModal=(targetId)=>{S.imgTarget=targetId;$('img-url').value='';$('img-w').value='100%';$('img-pv').style.display='none';openModal('img-modal');};
+window.previewImg=()=>{const url=$('img-url').value.trim();if(!url){toast('请输入URL','error');return;}$('img-pv-img').src=url;$('img-pv').style.display='block';};
 window.confirmImg=()=>{
   const url=$('img-url').value.trim(),w=$('img-w').value.trim()||'100%';
   if(!url){toast('请输入URL','error');return;}
@@ -1161,60 +2570,6 @@ window.confirmImg=()=>{
   const pos=ta.selectionStart;ta.value=ta.value.substring(0,pos)+'\n'+tag+'\n'+ta.value.substring(pos);
   ta.focus();closeModal('img-modal');toast('图片已插入','success');
 };
-
-window.setMode=(mode,el)=>{
-  S.mode=mode;document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');loadQuestions();
-};
-
-// ═══ AUTH MODAL LOGIC ═══
-window.switchAuthTab=(tab)=>{
-  ['login','register','reset'].forEach(t=>{
-    const el=$(t+'-form');if(el)el.style.display='none';
-    const btn=$('auth-tab-'+t);if(btn)btn.classList.remove('active');
-  });
-  const f=$(tab+'-form');if(f)f.style.display='flex';
-  const b=$('auth-tab-'+tab);if(b)b.classList.add('active');
-};
-window.submitLogin=async()=>{
-  const email=$('login-email').value.trim(),pass=$('login-pass').value;
-  if(!email||!pass){toast('请填写邮箱和密码','error');return;}
-  loading(true);
-  try{
-    await signInWithEmailAndPassword(auth,email,pass);
-    closeModal('auth-modal');toast('登录成功 👋','success');
-  }catch(e){
-    const msgs={'auth/user-not-found':'邮箱未注册','auth/wrong-password':'密码错误','auth/invalid-email':'邮箱格式不正确','auth/invalid-credential':'邮箱或密码错误'};
-    toast(msgs[e.code]||'登录失败','error');
-  }
-  loading(false);
-};
-window.submitRegister=async()=>{
-  const name=$('reg-name').value.trim(),email=$('reg-email').value.trim(),pass=$('reg-pass').value,pass2=$('reg-pass2').value;
-  if(!name||!email||!pass){toast('请填写完整信息','error');return;}
-  if(pass!==pass2){toast('两次密码不一致','error');return;}
-  if(pass.length<6){toast('密码至少6位','error');return;}
-  loading(true);
-  try{
-    const cred=await createUserWithEmailAndPassword(auth,email,pass);
-    await updateProfile(cred.user,{displayName:name});
-    closeModal('auth-modal');toast('注册成功，欢迎 '+name+' 👋','success');
-  }catch(e){
-    const msgs={'auth/email-already-in-use':'该邮箱已注册','auth/invalid-email':'邮箱格式不正确','auth/weak-password':'密码强度不够'};
-    toast(msgs[e.code]||'注册失败','error');
-  }
-  loading(false);
-};
-window.submitReset=async()=>{
-  const email=$('reset-email').value.trim();
-  if(!email){toast('请输入邮箱','error');return;}
-  loading(true);
-  try{await sendPasswordResetEmail(auth,email);toast('重置邮件已发送，请检查邮箱','success');window.switchAuthTab('login');}
-  catch(e){toast('发送失败','error');}
-  loading(false);
-};
-
-// ═══ IMAGE UPLOAD (手机直接选图) ═══
 window.triggerImgUpload=(targetId)=>{
   S.imgTarget=targetId;
   const input=document.createElement('input');
@@ -1239,7 +2594,54 @@ window.triggerImgUpload=(targetId)=>{
   input.click();
 };
 
-// ═══ INIT ═══
+/* ═══ MODE ═══ */
+window.setMode=(mode,el)=>{
+  S.mode=mode;document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  applyMode(S.questions.length?S.questions:[]);
+  if(!S.questions.length)loadQuestions();
+};
+
+/* ═══ AUTH ═══ */
+window.switchAuthTab=(tab)=>{
+  ['login','register','reset'].forEach(t=>{
+    const el=$(t+'-form');if(el)el.style.display='none';
+    const btn=$('auth-tab-'+t);if(btn){btn.style.borderBottomColor='transparent';btn.style.color='var(--text-secondary)';btn.style.fontWeight='400';}
+  });
+  const f=$(tab+'-form');if(f)f.style.display='flex';
+  const b=$('auth-tab-'+tab);if(b){b.style.borderBottomColor='var(--accent)';b.style.color='var(--accent)';b.style.fontWeight='500';}
+};
+window.submitLogin=async()=>{
+  const email=$('login-email').value.trim(),pass=$('login-pass').value;
+  if(!email||!pass){toast('请填写邮箱和密码','error');return;}
+  loading(true);
+  try{await signInWithEmailAndPassword(auth,email,pass);closeModal('auth-modal');toast('登录成功 👋','success');}
+  catch(e){const msgs={'auth/user-not-found':'邮箱未注册','auth/wrong-password':'密码错误','auth/invalid-email':'邮箱格式不正确','auth/invalid-credential':'邮箱或密码错误'};toast(msgs[e.code]||'登录失败','error');}
+  loading(false);
+};
+window.submitRegister=async()=>{
+  const name=$('reg-name').value.trim(),email=$('reg-email').value.trim(),pass=$('reg-pass').value,pass2=$('reg-pass2').value;
+  if(!name||!email||!pass){toast('请填写完整信息','error');return;}
+  if(pass!==pass2){toast('两次密码不一致','error');return;}
+  if(pass.length<6){toast('密码至少6位','error');return;}
+  loading(true);
+  try{const cred=await createUserWithEmailAndPassword(auth,email,pass);await updateProfile(cred.user,{displayName:name});closeModal('auth-modal');toast('注册成功，欢迎 '+name+' 👋','success');}
+  catch(e){const msgs={'auth/email-already-in-use':'该邮箱已注册','auth/invalid-email':'邮箱格式不正确','auth/weak-password':'密码强度不够'};toast(msgs[e.code]||'注册失败','error');}
+  loading(false);
+};
+window.submitReset=async()=>{
+  const email=$('reset-email').value.trim();if(!email){toast('请输入邮箱','error');return;}
+  loading(true);
+  try{await sendPasswordResetEmail(auth,email);toast('重置邮件已发送，请检查邮箱','success');window.switchAuthTab('login');}
+  catch(e){toast('发送失败','error');}
+  loading(false);
+};
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+loadExamDates();
+loadSavedPapers();
 loading(true);
 onAuthStateChanged(auth,async(user)=>{
   S.currentUser=user||null;
@@ -1255,43 +2657,5 @@ onAuthStateChanged(auth,async(user)=>{
   loading(false);
 });
 </script>
-
-<!-- ═══ AUTH MODAL ═══ -->
-<div class="modal-overlay" id="auth-modal">
-  <div class="modal" style="max-width:400px">
-    <div class="modal-header">
-      <span class="modal-title">📚 刷题本 · 登录</span>
-      <button class="modal-close" onclick="closeModal('auth-modal')">×</button>
-    </div>
-    <div style="display:flex;border-bottom:1px solid var(--border)">
-      <button id="auth-tab-login" onclick="switchAuthTab('login')" style="flex:1;padding:10px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;border-bottom:2px solid var(--accent);color:var(--accent);font-weight:500">登录</button>
-      <button id="auth-tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:10px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;color:var(--text-secondary);border-bottom:2px solid transparent">注册</button>
-      <button id="auth-tab-reset" onclick="switchAuthTab('reset')" style="flex:1;padding:10px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;color:var(--text-secondary);border-bottom:2px solid transparent">找回密码</button>
-    </div>
-    <!-- 登录 -->
-    <div id="login-form" style="display:flex;flex-direction:column;gap:12px;padding:20px">
-      <div class="form-group"><label class="form-label">邮箱</label><input class="form-input" id="login-email" type="email" placeholder="your@email.com" autocomplete="email"></div>
-      <div class="form-group"><label class="form-label">密码</label><input class="form-input" id="login-pass" type="password" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitLogin()"></div>
-      <button class="btn-submit" onclick="submitLogin()" style="width:100%;padding:11px;font-size:14px">登录</button>
-      <div style="text-align:center;font-size:12px;color:var(--text-muted)">没有账号？<span style="color:var(--accent);cursor:pointer" onclick="switchAuthTab('register')">立即注册</span></div>
-    </div>
-    <!-- 注册 -->
-    <div id="register-form" style="display:none;flex-direction:column;gap:12px;padding:20px">
-      <div class="form-group"><label class="form-label">昵称</label><input class="form-input" id="reg-name" type="text" placeholder="你的名字"></div>
-      <div class="form-group"><label class="form-label">邮箱</label><input class="form-input" id="reg-email" type="email" placeholder="your@email.com" autocomplete="email"></div>
-      <div class="form-group"><label class="form-label">密码（至少6位）</label><input class="form-input" id="reg-pass" type="password" placeholder="••••••" autocomplete="new-password"></div>
-      <div class="form-group"><label class="form-label">确认密码</label><input class="form-input" id="reg-pass2" type="password" placeholder="••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitRegister()"></div>
-      <button class="btn-submit green" onclick="submitRegister()" style="width:100%;padding:11px;font-size:14px">创建账号</button>
-      <div style="text-align:center;font-size:12px;color:var(--text-muted)">已有账号？<span style="color:var(--accent);cursor:pointer" onclick="switchAuthTab('login')">直接登录</span></div>
-    </div>
-    <!-- 找回密码 -->
-    <div id="reset-form" style="display:none;flex-direction:column;gap:12px;padding:20px">
-      <div style="font-size:13px;color:var(--text-secondary);line-height:1.6">输入注册邮箱，我们将发送密码重置链接。</div>
-      <div class="form-group"><label class="form-label">邮箱</label><input class="form-input" id="reset-email" type="email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')submitReset()"></div>
-      <button class="btn-submit" onclick="submitReset()" style="width:100%;padding:11px;font-size:14px">发送重置邮件</button>
-      <div style="text-align:center;font-size:12px;color:var(--text-muted)"><span style="color:var(--accent);cursor:pointer" onclick="switchAuthTab('login')">← 返回登录</span></div>
-    </div>
-  </div>
-</div>
 </body>
 </html>
