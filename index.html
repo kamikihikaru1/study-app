@@ -834,6 +834,35 @@ nav {
 .share-mini-lbl { font-size: 10px; opacity: .55; margin-top: 2px; }
 .share-quote { font-size: 12px; opacity: .6; margin-top: 16px; font-style: italic; font-family: 'Noto Serif SC', serif; line-height: 1.6; }
 
+/* source badge in card header */
+.src-badge {
+  font-size: 10px; padding: 1px 7px;
+  border-radius: 10px; font-weight: 500;
+  border: 1px solid rgba(0,0,0,.07);
+  white-space: nowrap;
+}
+.src-1 { background:#fff0f0;color:#b83020; }
+.src-2 { background:#fff5e0;color:#b87020; }
+.src-3 { background:#f0f7ff;color:#2c5f8a; }
+.src-4 { background:#f5f0ff;color:#6a1aa0; }
+.src-5 { background:#f0fff5;color:#1a7a40; }
+.src-6 { background:#f5f5f5;color:#555; }
+
+/* bank browser row hover */
+#bank-question-list .pv-item:hover { background: var(--accent-light); }
+
+/* chbar dblclick hint tooltip on hover */
+.chbar-chip[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -24px; left: 50%;
+  transform: translateX(-50%);
+  background: #1a1814; color: white;
+  font-size: 10px; padding: 2px 6px;
+  border-radius: 4px; white-space: nowrap;
+  pointer-events: none; z-index: 100;
+}
+
 /* exam date selector */
 .date-tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
 .date-tab { padding: 4px 10px; border-radius: 14px; font-size: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); cursor: pointer; transition: all .12s; }
@@ -985,8 +1014,8 @@ nav {
           <span>章节大纲</span>
           <span class="panel-gear" onclick="openManageModal()" title="管理章节">⚙</span>
         </div>
-        <button class="outline-refresh-btn" onclick="refreshOutlineSort()" title="按题量自动排序">
-          🔄 按题量排序
+        <button class="outline-refresh-btn" onclick="refreshOutlineSort()" title="按章节文字顺序排序">
+          🔄 章节顺序排序
         </button>
         <div id="outline-tree" class="outline-tree"></div>
         <div class="outline-btns">
@@ -1084,7 +1113,7 @@ nav {
       <div style="display:flex;gap:7px;flex-wrap:wrap">
         <button class="btn-sec" onclick="openChapterEditModal(null,null)">＋ 添加章</button>
         <button class="btn-sec" onclick="openImportOutlineModal()">📋 批量导入目录</button>
-        <button class="btn-sec" onclick="refreshOutlineSort()">🔄 按题量排序</button>
+        <button class="btn-sec" onclick="refreshOutlineSort()">🔄 章节顺序排序</button>
       </div>
       <div class="om-list" id="manage-list"></div>
     </div>
@@ -1261,6 +1290,18 @@ nav {
         <div class="form-group" style="flex:1;min-width:130px"><label class="form-label">默认节</label>
           <select class="form-select" id="imp-sec"><option value="">-- 不指定 --</option></select>
         </div>
+        <div class="form-group" style="flex:1;min-width:160px">
+          <label class="form-label">题目来源（批量默认）</label>
+          <select class="form-select" id="imp-source">
+            <option value="">-- 不标记 --</option>
+            <option value="1">一级 · 历届原题</option>
+            <option value="2">二级 · 老师资料</option>
+            <option value="3">三级 · 课件重点</option>
+            <option value="4">四级 · 原型例题</option>
+            <option value="5">五级 · 课堂测试</option>
+            <option value="6">六级 · 课后作业</option>
+          </select>
+        </div>
       </div>
       <div class="form-group"><label class="form-label">粘贴题目文本</label>
         <textarea class="form-input import-ta" id="imp-text" rows="9" placeholder="#单选题
@@ -1289,7 +1330,7 @@ D. 渗透
       </div>
       <div id="import-preview" style="display:none">
         <div class="preview-wrap">
-          <div class="preview-hd">解析结果 <span class="preview-badge" id="imp-cnt">0题</span></div>
+          <div class="preview-hd">解析结果 <span class="preview-badge" id="imp-cnt">0题</span><span style="font-size:11px;color:var(--text-muted);margin-left:8px">可在每行末微调来源标签</span></div>
           <div class="preview-list" id="imp-list"></div>
         </div>
       </div>
@@ -1337,47 +1378,55 @@ D. 渗透
 <div class="modal-overlay" id="exam-paper-modal">
   <div class="modal modal-xl">
     <div class="modal-header"><span class="modal-title">📋 试卷系统</span><button class="modal-close" onclick="closeModal('exam-paper-modal')">×</button></div>
-    <div class="modal-body">
+    <div class="modal-body" style="padding-top:0">
       <!-- tabs -->
-      <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:12px">
-        <button id="ep-tab-new" onclick="switchEpTab('new')" style="flex:1;padding:9px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;border-bottom:2px solid var(--accent);color:var(--accent);font-weight:500">生成试卷</button>
-        <button id="ep-tab-saved" onclick="switchEpTab('saved')" style="flex:1;padding:9px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;border-bottom:2px solid transparent;color:var(--text-secondary)">已保存试卷</button>
+      <div style="display:flex;border-bottom:1px solid var(--border);margin:0 -20px 14px;padding:0 20px">
+        <button id="ep-tab-new" onclick="switchEpTab('new')" style="flex:1;padding:10px 6px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;border-bottom:2px solid var(--accent);color:var(--accent);font-weight:500">⚙ 配置出卷</button>
+        <button id="ep-tab-bank" onclick="switchEpTab('bank')" style="flex:1;padding:10px 6px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;border-bottom:2px solid transparent;color:var(--text-secondary)">📚 题库总览</button>
+        <button id="ep-tab-saved" onclick="switchEpTab('saved')" style="flex:1;padding:10px 6px;border:none;background:transparent;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;border-bottom:2px solid transparent;color:var(--text-secondary)">🗂 已保存</button>
       </div>
 
-      <!-- new paper -->
+      <!-- ── 配置出卷 ── -->
       <div id="ep-new">
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <div class="form-group" style="flex:1;min-width:130px"><label class="form-label">题量</label>
-            <select class="form-select" id="ep-count">
-              <option value="10">10题</option><option value="20">20题</option><option value="30">30题</option><option value="50">50题</option><option value="0">全部</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex:1;min-width:130px"><label class="form-label">章节范围</label>
-            <select class="form-select" id="ep-chapter"><option value="">全部章节</option></select>
-          </div>
-          <div class="form-group" style="flex:1;min-width:130px"><label class="form-label">题型组合</label>
-            <select class="form-select" id="ep-types">
-              <option value="all">全部题型</option>
-              <option value="choice,multi">选择题</option>
-              <option value="fill">填空题</option>
-              <option value="calc,short">主观题</option>
-            </select>
-          </div>
+        <div class="help-box" style="margin-bottom:10px;font-size:12px">按题型分别设置题量，空或 0 表示不出该题型。可单独设置每种题型的章节范围。</div>
+
+        <!-- per-type rows -->
+        <div id="ep-type-rows" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+
+        <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+          <div class="form-group" style="flex:2;min-width:160px"><label class="form-label">试卷名称（可选）</label><input class="form-input" id="ep-name" placeholder="例：第一章综合练习 · 期末"></div>
         </div>
-        <div class="form-group"><label class="form-label">试卷名称（可选）</label><input class="form-input" id="ep-name" placeholder="例：第一章综合练习"></div>
-        <div style="display:flex;gap:7px">
-          <button class="btn-sec" onclick="generatePaper()">🎲 生成试卷</button>
-          <button class="btn-sec" onclick="savePaperTemplate()">📌 保存为模板</button>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <button class="btn-sec" onclick="generatePaper()">🎲 生成预览</button>
+          <button class="btn-sec" onclick="savePaperTemplate()">📌 保存模板</button>
         </div>
-        <div id="ep-preview" style="display:none">
+        <div id="ep-preview" style="display:none;margin-top:10px">
           <div class="preview-wrap">
-            <div class="preview-hd">试卷预览 <span class="preview-badge" id="ep-cnt">0题</span></div>
-            <div class="preview-list" id="ep-list" style="max-height:200px"></div>
+            <div class="preview-hd">试卷预览 <span class="preview-badge" id="ep-cnt">0题</span><span id="ep-total-score" style="margin-left:7px;font-size:11px;color:var(--text-muted)"></span></div>
+            <div class="preview-list" id="ep-list" style="max-height:220px"></div>
           </div>
         </div>
       </div>
 
-      <!-- saved papers -->
+      <!-- ── 题库总览 ── -->
+      <div id="ep-bank" style="display:none">
+        <!-- chapter selector bar -->
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+          <div id="bank-ch-all" class="chbar-chip active" style="font-size:12px" onclick="bankSelectCh(null)">全部章节</div>
+          <div id="bank-ch-btns"></div>
+        </div>
+        <!-- type breakdown stats -->
+        <div id="bank-type-stats" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px"></div>
+        <!-- question list by chapter -->
+        <div id="bank-question-list" style="max-height:320px;overflow-y:auto"></div>
+        <div style="margin-top:8px;font-size:12px;color:var(--text-muted)" id="bank-selected-hint">点击题目可勾选加入试卷</div>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn-sec" onclick="bankAddSelectedToPaper()">✅ 将勾选题目加入试卷</button>
+          <button class="btn-sec" onclick="bankClearSel()">✗ 清空勾选</button>
+        </div>
+      </div>
+
+      <!-- ── 已保存模板 ── -->
       <div id="ep-saved" style="display:none">
         <div class="paper-grid" id="paper-grid">
           <div class="paper-card paper-card-new" onclick="switchEpTab('new')">
@@ -1529,6 +1578,9 @@ const ec=n=>(!n||n===0)?'fresh':n<5?'warn':'danger';
 const qLabel=t=>({choice:'单选',multi:'多选',fill:'填空',calc:'计算',short:'简答'}[t]||t);
 const qClass=t=>({choice:'choice',multi:'choice',fill:'fill',calc:'calc',short:'short'}[t]||'fill');
 const secsOf=chId=>S.sections.filter(s=>s.chapterId===chId);
+// Source tag system
+const SOURCE_LABELS={1:'一级·历届原题',2:'二级·老师资料',3:'三级·课件重点',4:'四级·原型例题',5:'五级·课堂测试',6:'六级·课后作业'};
+const SOURCE_WEIGHT={1:2.5,2:2.0,3:1.6,4:1.3,5:1.1,6:1.0};
 
 function toast(msg,type='info'){
   const t=document.createElement('div');
@@ -1733,63 +1785,220 @@ window.flipFortuneCard=()=>{
 window.closeFortuneOverlay=()=>{$('fortune-overlay').classList.remove('open');};
 
 /* ═══════════════════════════════════════════
-   MODULE: EXAM PAPER SYSTEM
+   MODULE: EXAM PAPER SYSTEM (v3)
 ═══════════════════════════════════════════ */
+const EP_TYPES=[
+  {key:'choice',label:'单选题',color:'#e8f4fd',tc:'#1a6fa0'},
+  {key:'multi', label:'多选题',color:'#e8f0fd',tc:'#3a1aa0'},
+  {key:'fill',  label:'填空题',color:'#e8f8ee',tc:'#1a7a40'},
+  {key:'calc',  label:'计算题',color:'#f3e8fd',tc:'#6a1aa0'},
+  {key:'short', label:'简答题',color:'#fdf3e8',tc:'#a05a1a'},
+];
+// state for bank browser
+const bankSel=new Set(); // set of question ids manually selected in bank
+let bankChFilter=null;   // null = all
+let bankManualPool=[];   // questions added from bank tab
+
+function renderEpTypeRows(){
+  const wrap=$('ep-type-rows');if(!wrap)return;
+  wrap.innerHTML='';
+  // count available per type (all subjects questions loaded)
+  const allQ=S.questions; // currently loaded questions
+  EP_TYPES.forEach(t=>{
+    const avail=allQ.filter(q=>q.type===t.key).length;
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface)';
+    row.innerHTML=`
+      <span style="font-size:11px;font-weight:500;padding:2px 7px;border-radius:4px;background:${t.color};color:${t.tc};min-width:52px;text-align:center">${t.label}</span>
+      <div style="flex:1">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px">章节范围</div>
+        <select class="form-select" id="ep-ch-${t.key}" style="font-size:12px;padding:4px 7px"><option value="">全部章节</option></select>
+      </div>
+      <div style="width:70px">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px">题量 <span style="color:var(--accent)">(库:${avail})</span></div>
+        <input class="form-input" id="ep-n-${t.key}" type="number" min="0" max="${avail}" value="" placeholder="0"
+          style="width:100%;padding:4px 7px;font-size:13px;font-family:'JetBrains Mono',monospace">
+      </div>`;
+    wrap.appendChild(row);
+    // fill chapter selects
+    const sel=row.querySelector(`#ep-ch-${t.key}`);
+    S.chapters.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o);});
+  });
+}
+
 window.openExamPaperModal=()=>{
   if(!S.currentSubject){toast('请先选择科目','error');return;}
-  fillChSel('ep-chapter','',true);
+  renderEpTypeRows();
   renderSavedPapers();
+  bankSel.clear();bankManualPool=[];
+  switchEpTab('new');
+  $('ep-preview').style.display='none';
+  $('ep-start-btn').style.display='none';
   openModal('exam-paper-modal');
 };
 window.switchEpTab=(tab)=>{
-  ['new','saved'].forEach(t=>{
-    $('ep-'+t).style.display='none';
+  ['new','bank','saved'].forEach(t=>{
+    const el=$('ep-'+t);if(el)el.style.display='none';
     const btn=$('ep-tab-'+t);
     if(btn){btn.style.borderBottomColor='transparent';btn.style.color='var(--text-secondary)';btn.style.fontWeight='400';}
   });
   $('ep-'+tab).style.display='block';
   const ab=$('ep-tab-'+tab);
   if(ab){ab.style.borderBottomColor='var(--accent)';ab.style.color='var(--accent)';ab.style.fontWeight='500';}
+  if(tab==='bank') renderBankView();
 };
+
 window.generatePaper=()=>{
   if(!S.currentSubject){toast('请先选择科目','error');return;}
-  let pool=[...S.questions];
-  const chId=$('ep-chapter').value;
-  if(chId)pool=pool.filter(q=>q.chapterId===chId);
-  const types=$('ep-types').value;
-  if(types!=='all'){const ts=types.split(',');pool=pool.filter(q=>ts.includes(q.type));}
-  // shuffle
-  pool=pool.sort(()=>Math.random()-.5);
-  const count=parseInt($('ep-count').value)||0;
-  if(count>0)pool=pool.slice(0,count);
-  if(!pool.length){toast('该范围内没有题目','error');return;}
-  S.pendingPaper=pool;
-  // render preview
+  // Load full subject question pool (not filtered by current chapter)
+  const fullPool=S.questions; // already loaded for subject
+  let combined=[];
+  EP_TYPES.forEach(t=>{
+    const n=parseInt($('ep-n-'+t.key)?.value)||0;
+    if(n===0) return;
+    const chId=$('ep-ch-'+t.key)?.value||'';
+    let pool=fullPool.filter(q=>q.type===t.key);
+    if(chId) pool=pool.filter(q=>q.chapterId===chId);
+    pool=pool.sort(()=>Math.random()-.5).slice(0,n);
+    combined.push(...pool);
+  });
+  // add bank-manually-selected if any (deduplicate)
+  if(bankManualPool.length){
+    const ids=new Set(combined.map(q=>q.id));
+    bankManualPool.forEach(q=>{if(!ids.has(q.id))combined.push(q);});
+  }
+  if(!combined.length){toast('题量均为 0 或题库不足，请调整设置','error');return;}
+  // sort by chapter order for nice paper layout
+  combined.sort((a,b)=>{
+    const ci=S.chapters.findIndex(c=>c.id===a.chapterId)-S.chapters.findIndex(c=>c.id===b.chapterId);
+    if(ci!==0)return ci;
+    return EP_TYPES.findIndex(t=>t.key===a.type)-EP_TYPES.findIndex(t=>t.key===b.type);
+  });
+  S.pendingPaper=combined;
   $('ep-preview').style.display='block';
-  $('ep-cnt').textContent=pool.length+'题';
+  $('ep-cnt').textContent=combined.length+'题';
   $('ep-start-btn').style.display='block';
   const list=$('ep-list');list.innerHTML='';
-  pool.forEach((q,i)=>{
+  // group by type for display
+  let lastType='';
+  combined.forEach((q,i)=>{
+    if(q.type!==lastType){
+      lastType=q.type;
+      const hdr=document.createElement('div');
+      hdr.style.cssText='padding:5px 11px;background:var(--surface2);font-size:11px;font-weight:500;color:var(--text-muted);border-bottom:1px solid var(--border)';
+      hdr.textContent=qLabel(q.type)+'区';
+      list.appendChild(hdr);
+    }
+    const ch=S.chapters.find(c=>c.id===q.chapterId);
     const div=document.createElement('div');div.className='pv-item';
-    div.innerHTML=`<span class="pv-type ${qClass(q.type)}">${qLabel(q.type)}</span><div class="pv-body"><div class="pv-q">${i+1}. ${q.question.replace(/<[^>]*>/g,'').substring(0,60)}</div></div>`;
+    div.innerHTML=`<span class="pv-type ${qClass(q.type)}">${qLabel(q.type)}</span>
+      <div class="pv-body">
+        <div class="pv-q">${i+1}. ${q.question.replace(/<[^>]*>/g,'').substring(0,55)}</div>
+        <div class="pv-meta">${ch?ch.name:'—'}${q.source?` · <span style="color:var(--accent)">来源${q.source}</span>`:''}</div>
+      </div>`;
     list.appendChild(div);
   });
 };
+
+/* ── BANK BROWSER ── */
+function renderBankView(){
+  // chapter buttons
+  const btnWrap=$('bank-ch-btns');btnWrap.innerHTML='';
+  S.chapters.forEach(ch=>{
+    const b=document.createElement('div');
+    b.className='chbar-chip'+(bankChFilter===ch.id?' active':'');
+    b.style.fontSize='12px';
+    b.textContent=ch.name;
+    b.onclick=()=>{bankChFilter=bankChFilter===ch.id?null:ch.id;renderBankView();};
+    btnWrap.appendChild(b);
+  });
+  $('bank-ch-all').className='chbar-chip'+(bankChFilter===null?' active':'');
+
+  // type stats
+  const stats=$('bank-type-stats');stats.innerHTML='';
+  let pool=S.questions;
+  if(bankChFilter) pool=pool.filter(q=>q.chapterId===bankChFilter);
+  EP_TYPES.forEach(t=>{
+    const cnt=pool.filter(q=>q.type===t.key).length;
+    if(!cnt)return;
+    const badge=document.createElement('div');
+    badge.style.cssText=`padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;background:${t.color};color:${t.tc};border:1px solid rgba(0,0,0,.06)`;
+    badge.textContent=`${t.label} ×${cnt}`;
+    stats.appendChild(badge);
+  });
+
+  // question list grouped by chapter→type
+  const qlist=$('bank-question-list');qlist.innerHTML='';
+  const chapsTodo=bankChFilter
+    ? S.chapters.filter(c=>c.id===bankChFilter)
+    : S.chapters;
+
+  chapsTodo.forEach(ch=>{
+    const chQs=pool.filter(q=>q.chapterId===ch.id);
+    if(!chQs.length)return;
+    const chHdr=document.createElement('div');
+    chHdr.style.cssText='padding:6px 10px;background:var(--surface2);font-size:12px;font-weight:600;border-bottom:1px solid var(--border);border-top:1px solid var(--border);margin-top:2px;display:flex;align-items:center;justify-content:space-between';
+    chHdr.innerHTML=`<span>${ch.name}</span><span style="font-size:11px;color:var(--text-muted)">${chQs.length}题</span>`;
+    qlist.appendChild(chHdr);
+
+    EP_TYPES.forEach(t=>{
+      const tQs=chQs.filter(q=>q.type===t.key);
+      if(!tQs.length)return;
+      const tHdr=document.createElement('div');
+      tHdr.style.cssText=`padding:3px 14px;font-size:11px;font-weight:500;background:${t.color};color:${t.tc}`;
+      tHdr.textContent=t.label;
+      qlist.appendChild(tHdr);
+      tQs.forEach(q=>{
+        const sec=S.sections.find(s=>s.id===q.sectionId);
+        const row=document.createElement('div');
+        row.className='pv-item';
+        row.style.cursor='pointer';
+        const isSel=bankSel.has(q.id);
+        row.style.background=isSel?'#e8f4fd':'';
+        row.innerHTML=`
+          <span style="font-size:16px;width:18px;text-align:center;flex-shrink:0">${isSel?'☑':'☐'}</span>
+          <div class="pv-body">
+            <div class="pv-q" style="font-size:12px">${q.question.replace(/<[^>]*>/g,'').substring(0,65)}</div>
+            <div class="pv-meta">${sec?'└ '+sec.name:''}${q.source?` · 来源${q.source}`:''} ${q.errorCount?`· ✗${q.errorCount}`:''}</div>
+          </div>`;
+        row.onclick=()=>{
+          if(bankSel.has(q.id)) bankSel.delete(q.id);
+          else bankSel.add(q.id);
+          renderBankView();
+        };
+        qlist.appendChild(row);
+      });
+    });
+  });
+  $('bank-selected-hint').textContent=bankSel.size>0?`已勾选 ${bankSel.size} 题，点击「将勾选题目加入试卷」`:'点击题目可勾选，支持跨章节选题';
+}
+window.bankSelectCh=(id)=>{bankChFilter=id;renderBankView();};
+window.bankClearSel=()=>{bankSel.clear();bankManualPool=[];renderBankView();toast('已清空勾选','info');};
+window.bankAddSelectedToPaper=()=>{
+  if(!bankSel.size){toast('请先勾选题目','error');return;}
+  bankManualPool=S.questions.filter(q=>bankSel.has(q.id));
+  switchEpTab('new');
+  // auto-populate type counts from selection
+  EP_TYPES.forEach(t=>{
+    const cnt=bankManualPool.filter(q=>q.type===t.key).length;
+    const inp=$('ep-n-'+t.key);if(inp)inp.value=cnt||'';
+  });
+  toast(`已将 ${bankManualPool.length} 道勾选题加入出卷配置`,'success');
+};
+
 window.savePaperTemplate=()=>{
   const name=$('ep-name').value.trim()||'练习试卷 '+new Date().toLocaleDateString();
+  // collect type config
+  const typeConfig={};
+  EP_TYPES.forEach(t=>{typeConfig[t.key]={n:parseInt($('ep-n-'+t.key)?.value)||0,chId:$('ep-ch-'+t.key)?.value||''};});
   const paper={
-    id:Date.now().toString(),
-    name,
+    id:Date.now().toString(),name,
     subjectId:S.currentSubject?.id,
-    count:parseInt($('ep-count').value)||20,
-    chapterId:$('ep-chapter').value||null,
-    types:$('ep-types').value,
-    createdAt:Date.now(),
+    typeConfig,createdAt:Date.now(),
   };
   S.savedPapers.push(paper);
   try{localStorage.setItem('savedPapers_'+(uid()||'anon'),JSON.stringify(S.savedPapers));}catch(e){}
-  renderSavedPapers();
-  toast('试卷模板已保存','success');
+  renderSavedPapers();toast('试卷模板已保存','success');
 };
 function renderSavedPapers(){
   const grid=$('paper-grid');grid.innerHTML='';
@@ -1802,23 +2011,36 @@ function renderSavedPapers(){
     const card=document.createElement('div');
     card.className='paper-card';
     const date=new Date(p.createdAt).toLocaleDateString();
-    card.innerHTML=`<div class="paper-card-title">${p.name}</div><div class="paper-card-meta">${p.count}题 · ${date}</div>`;
+    const total=p.typeConfig?Object.values(p.typeConfig).reduce((a,c)=>a+(c.n||0),0):p.count||0;
+    card.innerHTML=`<div class="paper-card-title">${p.name}</div>
+      <div class="paper-card-meta">${total}题 · ${date}</div>`;
     card.onclick=()=>{loadPaperTemplate(p);};
+    // delete btn
+    const db=document.createElement('button');
+    db.textContent='×';db.title='删除';
+    db.style.cssText='position:absolute;top:5px;right:6px;border:none;background:none;cursor:pointer;font-size:15px;color:var(--text-muted)';
+    db.onclick=e=>{e.stopPropagation();S.savedPapers=S.savedPapers.filter(x=>x.id!==p.id);try{localStorage.setItem('savedPapers_'+(uid()||'anon'),JSON.stringify(S.savedPapers));}catch(ex){}renderSavedPapers();};
+    card.style.position='relative';card.appendChild(db);
     grid.appendChild(card);
   });
 }
 function loadPaperTemplate(p){
-  $('ep-count').value=p.count;
-  $('ep-chapter').value=p.chapterId||'';
-  $('ep-types').value=p.types;
-  $('ep-name').value=p.name;
   switchEpTab('new');
+  renderEpTypeRows();
+  if(p.typeConfig){
+    EP_TYPES.forEach(t=>{
+      const cfg=p.typeConfig[t.key];
+      if(!cfg)return;
+      const ni=$('ep-n-'+t.key);if(ni)ni.value=cfg.n||0;
+      const ci=$('ep-ch-'+t.key);if(ci)ci.value=cfg.chId||'';
+    });
+  }
+  $('ep-name').value=p.name;
   generatePaper();
 }
 window.startPaper=()=>{
   if(!S.pendingPaper||!S.pendingPaper.length){toast('请先生成试卷','error');return;}
-  S.questions=S.pendingPaper;
-  S.currentIndex=0;
+  S.questions=S.pendingPaper;S.currentIndex=0;
   closeModal('exam-paper-modal');
   renderCards();renderStats();
   toast(`📋 试卷已开始，共 ${S.pendingPaper.length} 题`,'success');
@@ -1853,17 +2075,32 @@ window.openSummaryModal=()=>{
 window.showJarModal=()=>{openModal('jar-modal');};
 
 /* ═══════════════════════════════════════════
-   MODULE: OUTLINE REFRESH (sort by count)
+   MODULE: OUTLINE REFRESH (natural text sort)
 ═══════════════════════════════════════════ */
+// Extract leading number from chapter name for natural sort
+// Supports: "第1章", "第一章", "1.", "1 ", "Chapter 1" etc.
+const CN_NUMS={'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,
+  '十一':11,'十二':12,'十三':13,'十四':14,'十五':15,'十六':16,'十七':17,'十八':18,'十九':19,'二十':20};
+function chapterSortKey(name){
+  // Arabic: "第3章", "3.", "3 "
+  let m=name.match(/第\s*(\d+)\s*[章节]/)||name.match(/^(\d+)[.\s、]/);
+  if(m) return parseInt(m[1]);
+  // Chinese numerals
+  m=name.match(/第\s*([\u4e00-\u9fa5]+)\s*[章节]/);
+  if(m){const k=CN_NUMS[m[1]];if(k)return k;}
+  return 999;
+}
 window.refreshOutlineSort=()=>{
   if(!S.chapters.length){toast('暂无章节','info');return;}
-  // compute counts
-  const counts={};
-  S.chapters.forEach(ch=>{counts[ch.id]=S.questions.filter(q=>q.chapterId===ch.id).length;});
-  // sort chapters by count desc
-  S.chapters.sort((a,b)=>(counts[b.id]||0)-(counts[a.id]||0));
+  S.chapters.sort((a,b)=>chapterSortKey(a.name)-chapterSortKey(b.name));
   renderOutline();renderChapterBar();
-  toast('已按题量排序（仅本地视图）','info');
+  toast('已按章节顺序排序','info');
+};
+window.pinChapterTop=(chId)=>{
+  const idx=S.chapters.findIndex(c=>c.id===chId);
+  if(idx<=0)return;
+  const [ch]=S.chapters.splice(idx,1);S.chapters.unshift(ch);
+  renderOutline();renderChapterBar();toast('已置顶','success');
 };
 
 /* ═══════════════════════════════════════════
@@ -1957,21 +2194,25 @@ function applyMode(qs){
   renderCards();renderStats();
 }
 
-/* ═══ WEIGHT SYSTEM ═══ */
+/* ═══ WEIGHT SYSTEM (with source priority) ═══ */
+// Source priority: 1=历届原题(highest) … 6=课后作业(lowest), ''=neutral
 function computeWeight(q){
-  // base weight by error count
   const err=q.errorCount||0;
   const right=q.correctCount||0;
+  // base: never-seen > error-prone > mastered
   let w=1;
-  if(err===0&&right===0) w=1.2; // never seen
+  if(err===0&&right===0) w=1.2;
   else if(err>0) w=1+err*0.5;
   if(right>0) w=w/Math.sqrt(right);
-  // adjust by exam date urgency
+  // source multiplier
+  const src=parseInt(q.source)||0;
+  if(src>=1&&src<=6) w*=SOURCE_WEIGHT[src];
+  // exam date urgency
   const subId=S.currentSubject?.id;
   const ed=S.examDates[subId];
   if(ed&&ed!=='none'){
     const days=Math.ceil((new Date(ed)-new Date())/(1000*60*60*24));
-    if(days>0&&days<30) w*=1+(err>0?1.5:0.5); // near exam: boost errors
+    if(days>0&&days<30) w*=1+(err>0?1.5:0.5);
   }
   return w;
 }
@@ -1980,12 +2221,12 @@ function weightedSort(qs){
 }
 
 async function markQ(id,correct){
-  const ref=doc(db,'questions',id);
-  const d=(await getDoc(ref)).data();
-  if(correct) await updateDoc(ref,{correctCount:(d.correctCount||0)+1});
-  else await updateDoc(ref,{errorCount:(d.errorCount||0)+1});
+  // ★ PERF FIX: optimistic local update first, write to Firestore in background
   const q=S.questions.find(q=>q.id===id);
-  if(q){if(correct)q.correctCount=(q.correctCount||0)+1;else q.errorCount=(q.errorCount||0)+1;}
+  if(q){
+    if(correct) q.correctCount=(q.correctCount||0)+1;
+    else q.errorCount=(q.errorCount||0)+1;
+  }
   // session stats
   S.todayTotal++;
   if(correct){S.todayRight++;S.streak++;S.maxStreak=Math.max(S.maxStreak,S.streak);}
@@ -1993,6 +2234,10 @@ async function markQ(id,correct){
   if(S.streak>0&&S.streak%5===0) triggerReward();
   updateSidebarStats();
   renderCurrentCard();renderStats();
+  // fire-and-forget Firestore write (no await, no getDoc)
+  const ref=doc(db,'questions',id);
+  if(correct) updateDoc(ref,{correctCount:(q?.correctCount||1)}).catch(()=>{});
+  else updateDoc(ref,{errorCount:(q?.errorCount||1)}).catch(()=>{});
 }
 async function addQ(data){
   await addDoc(collection(db,'questions'),{
@@ -2001,6 +2246,7 @@ async function addQ(data){
     pointId:data.pointId||null,pointName:data.pointName||'',
     type:data.type,question:data.question,options:data.options||[],
     answer:data.answer,explanation:data.explanation||'',
+    source:data.source||'',
     errorCount:0,correctCount:0,createdAt:Date.now()
   });
 }
@@ -2111,28 +2357,47 @@ function renderSubjectBar(){
   add.className='subject-chip add-chip';add.textContent='＋ 添加科目';
   add.onclick=()=>openModal('add-subject-modal');bar.appendChild(add);
 }
+// Track which chapters are collapsed in the chapter bar
+const barCollapsed=new Set();
+
 function renderChapterBar(){
   const bar=$('chapter-bar-inner');bar.innerHTML='';
   const all=document.createElement('div');
   all.className='chbar-chip'+(!S.currentChapter&&!S.currentSection?' active':'');
   all.textContent='全部';
+  all.title='显示全部题目';
   all.onclick=()=>{S.currentChapter=null;S.currentSection=null;loadQuestions();renderChapterBar();renderOutline();};
   bar.appendChild(all);
+
   S.chapters.forEach(ch=>{
     const chActive=S.currentChapter===ch.id&&!S.currentSection;
+    const isCollapsed=barCollapsed.has(ch.id);
+    const hasSecs=secsOf(ch.id).length>0;
+
     const c=document.createElement('div');
     c.className='chbar-chip'+(chActive?' active':'');
-    c.textContent=ch.name;
+    c.style.position='relative';
+    c.title='单击选择章节 · 双击折叠/展开小节';
+    c.textContent=ch.name+(isCollapsed&&hasSecs?' ▸':hasSecs?' ▾':'');
     c.onclick=()=>{S.currentChapter=ch.id;S.currentSection=null;loadQuestions();renderChapterBar();renderOutline();};
+    c.ondblclick=(e)=>{
+      e.stopPropagation();
+      if(barCollapsed.has(ch.id)) barCollapsed.delete(ch.id);
+      else barCollapsed.add(ch.id);
+      renderChapterBar();
+    };
     bar.appendChild(c);
-    secsOf(ch.id).forEach(sec=>{
-      const secActive=S.currentSection===sec.id;
-      const s=document.createElement('div');
-      s.className='chbar-chip chbar-sec'+(secActive?' active':'');
-      s.textContent='└ '+sec.name;
-      s.onclick=()=>{S.currentChapter=ch.id;S.currentSection=sec.id;loadQuestions();renderChapterBar();renderOutline();};
-      bar.appendChild(s);
-    });
+
+    if(!isCollapsed){
+      secsOf(ch.id).forEach(sec=>{
+        const secActive=S.currentSection===sec.id;
+        const s=document.createElement('div');
+        s.className='chbar-chip chbar-sec'+(secActive?' active':'');
+        s.textContent='└ '+sec.name;
+        s.onclick=()=>{S.currentChapter=ch.id;S.currentSection=sec.id;loadQuestions();renderChapterBar();renderOutline();};
+        bar.appendChild(s);
+      });
+    }
   });
   const mgr=document.createElement('button');
   mgr.className='chbar-manage';mgr.textContent='⚙ 管理';
@@ -2152,11 +2417,13 @@ function renderOutline(){
     main.innerHTML=`<span class="oc-arrow">▶</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ch.name}</span><span class="oc-count">${chCount}</span>`;
     main.onclick=()=>{S.currentChapter=ch.id;S.currentSection=null;loadQuestions();renderOutline();renderChapterBar();};
     const acts=document.createElement('div');acts.className='oc-acts';
+    const pin=document.createElement('button');pin.className='oc-btn';pin.title='置顶';pin.textContent='⬆';
+    pin.onclick=e=>{e.stopPropagation();window.pinChapterTop(ch.id);};
     const eb=document.createElement('button');eb.className='oc-btn';eb.title='编辑';eb.textContent='✎';
     eb.onclick=e=>{e.stopPropagation();openChapterEditModal(ch.id,ch.name);};
     const db2=document.createElement('button');db2.className='oc-btn d';db2.title='删除';db2.textContent='×';
     db2.onclick=e=>{e.stopPropagation();confirmDelChapter(ch.id,ch.name);};
-    acts.appendChild(eb);acts.appendChild(db2);row.appendChild(main);row.appendChild(acts);
+    acts.appendChild(pin);acts.appendChild(eb);acts.appendChild(db2);row.appendChild(main);row.appendChild(acts);
     const sl=document.createElement('div');sl.className='os-list'+(isOpen?' open':'');
     secs.forEach(sec=>{
       const sa=S.currentSection===sec.id;
@@ -2253,6 +2520,8 @@ function renderCurrentCard(){
     </div>`;
   }
   const expl=(q.explanation||'').trim()?`<div class="explanation-label">解析</div><div class="explanation-text">${q.explanation}</div>`:'';
+  const srcNum=parseInt(q.source)||0;
+  const srcLabel=srcNum>=1?`<span class="src-badge src-${srcNum}">${SOURCE_LABELS[srcNum]||''}</span>`:'';
   $('cards-area').innerHTML=`
     <div class="card ${cls}">
       <div class="card-header">
@@ -2260,6 +2529,7 @@ function renderCurrentCard(){
         <span class="q-type ${qClass(q.type)}">${qLabel(q.type)}</span>
         ${locTag}
         ${q.pointName?`<span class="q-topic">💡<span>${q.pointName}</span></span>`:''}
+        ${srcLabel}
         ${badge}
         <button class="card-menu-btn" onclick="window._menu('${q.id}')">⋯</button>
       </div>
@@ -2515,6 +2785,12 @@ window.submitEditQ=async()=>{
   await updateQ(id,{type,question,options,answer,explanation,pointName,chapterId,sectionId,pointId:pointName?pointName.replace(/\s/g,'_'):null});
   loading(false);closeModal('edit-q-modal');toast('题目已更新','success');await loadQuestions();
 };
+function sourceSelectHtml(selected,idx){
+  const opts=Object.entries(SOURCE_LABELS).map(([v,l])=>`<option value="${v}"${parseInt(selected)===parseInt(v)?'selected':''}>${l}</option>`).join('');
+  return `<select class="form-select" id="imp-src-${idx}" style="font-size:11px;padding:2px 5px;min-width:110px">
+    <option value="">不标记</option>${opts}
+  </select>`;
+}
 window.previewImport=()=>{
   const text=$('imp-text').value.trim();if(!text){toast('请粘贴题目文本','error');return;}
   const parsed=parseQuestions(text);S.pendingImport=parsed;
@@ -2522,12 +2798,19 @@ window.previewImport=()=>{
   $('imp-cnt').textContent=`${parsed.length} 题`;
   const list=$('imp-list');list.innerHTML='';
   if(!parsed.length){list.innerHTML='<div class="pv-item" style="color:var(--danger)">⚠️ 未识别到有效题目，请检查格式</div>';$('imp-confirm').style.display='none';return;}
+  const defSrc=$('imp-source').value||'';
   parsed.forEach((q,i)=>{
     const ch=resolveChByHint(q.chHint);
     const sec=ch?resolveSecByHint(q.secHint,ch.id):null;
     const secTag=ch?`<span class="pv-sec">${[ch.name,sec?.name].filter(Boolean).join(' › ')}</span>`:'';
     const div=document.createElement('div');div.className='pv-item';
-    div.innerHTML=`<span class="pv-type ${q.type}">${qLabel(q.type)}</span><div class="pv-body"><div class="pv-q">${i+1}. ${q.question.replace(/<[^>]*>/g,'').substring(0,55)} ${secTag}</div><div class="pv-meta">答：${q.answer.substring(0,40)}</div></div>`;
+    div.style.flexWrap='wrap';div.style.gap='6px';
+    div.innerHTML=`<span class="pv-type ${q.type}">${qLabel(q.type)}</span>
+      <div class="pv-body" style="min-width:180px">
+        <div class="pv-q">${i+1}. ${q.question.replace(/<[^>]*>/g,'').substring(0,50)} ${secTag}</div>
+        <div class="pv-meta">答：${q.answer.substring(0,35)}</div>
+      </div>
+      <div style="flex-shrink:0">${sourceSelectHtml(defSrc,i)}</div>`;
     list.appendChild(div);
   });
   $('imp-confirm').style.display='block';
@@ -2538,13 +2821,18 @@ window.confirmImport=async()=>{
   const defCh=$('imp-ch').value||null,defSec=$('imp-sec').value||null;
   closeModal('import-modal');loading(true);
   let ok=0;
-  for(const q of parsed){
+  for(let i=0;i<parsed.length;i++){
+    const q=parsed[i];
     try{
       const ch=resolveChByHint(q.chHint);
       const sec=ch?resolveSecByHint(q.secHint,ch.id):null;
-      await addQ({type:q.type,question:q.question,options:q.options,answer:q.answer,explanation:q.explanation||'',
-        pointName:q.pointName||'',pointId:q.pointName?q.pointName.replace(/\s/g,'_'):null,
-        chapterId:ch?.id||defCh,sectionId:sec?.id||defSec});
+      const srcEl=document.getElementById('imp-src-'+i);
+      const src=srcEl?srcEl.value:'';
+      await addQ({type:q.type,question:q.question,options:q.options,answer:q.answer,
+        explanation:q.explanation||'',pointName:q.pointName||'',
+        pointId:q.pointName?q.pointName.replace(/\s/g,'_'):null,
+        chapterId:ch?.id||defCh,sectionId:sec?.id||defSec,
+        source:src});
       ok++;
     }catch(e){console.error(e);}
   }
