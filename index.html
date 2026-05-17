@@ -2266,26 +2266,9 @@ async function deleteQ(id){
 /* ═══════════════════════════════════════════
    MODULE: PARSE
 ═══════════════════════════════════════════ */
-function protectLatexNewlines(text){
-  // 把 \(...\) 和 \[...\] 内部的换行替换成空格，防止解析时被切断
-  let out='',depth=0,inInline=false,inBlock=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i],c2=text.slice(i,i+2);
-    if(!inInline&&!inBlock&&c2==='\\['){inBlock=true;out+=c2;i++;continue;}
-    if(inBlock&&c2==='\\]'){inBlock=false;out+=c2;i++;continue;}
-    if(!inInline&&!inBlock&&c2==='\\('){inInline=true;out+=c2;i++;continue;}
-    if(inInline&&c2==='\\)'){inInline=false;out+=c2;i++;continue;}
-    if((inInline||inBlock)&&c==='\n'){out+=' ';continue;}
-    out+=c;
-  }
-  return out;
-}
-
 function parseQuestions(text){
   const TM={'单选题':'choice','多选题':'multi','填空题':'fill','计算题':'calc','简答题':'short'};
-  // 先保护 LaTeX 内部换行
-  const safeText=protectLatexNewlines(text);
-  const blocks=safeText.split(/\n\s*---\s*\n/);
+  const blocks=text.split(/\n\s*---\s*\n/);
   const res=[];
   for(const raw of blocks){
     const b=raw.trim();if(!b)continue;
@@ -2293,7 +2276,7 @@ function parseQuestions(text){
     let type='',question='',options=[],answer='',explanation='',pointName='',chHint='',secHint='';
     let cf='',cc=[];
     const flush=()=>{
-      const v=cc.join(' ').trim();  // 用空格而不是换行合并，保护 LaTeX
+      const v=cc.join('\n').trim();
       if(cf==='question')question=v;
       else if(cf==='answer')answer=v;
       else if(cf==='explanation')explanation=v;
@@ -2824,19 +2807,13 @@ window.previewImport=()=>{
     div.style.flexWrap='wrap';div.style.gap='6px';
     div.innerHTML=`<span class="pv-type ${q.type}">${qLabel(q.type)}</span>
       <div class="pv-body" style="min-width:180px">
-        <div class="pv-q">${i+1}. ${(()=>{
-          // 安全截断：剥离 HTML 和 LaTeX 标记，只保留文字部分用于摘要
-          const plain=q.question.replace(/\\[[(][^\]\)]*[\]\)]/g,'[式]').replace(/<[^>]*>/g,'');
-          return plain.substring(0,55)+(plain.length>55?'…':'');
-        })()} ${secTag}</div>
+        <div class="pv-q">${i+1}. ${q.question.replace(/<[^>]*>/g,'').substring(0,50)} ${secTag}</div>
         <div class="pv-meta">答：${q.answer.substring(0,35)}</div>
       </div>
       <div style="flex-shrink:0">${sourceSelectHtml(defSrc,i)}</div>`;
     list.appendChild(div);
   });
   $('imp-confirm').style.display='block';
-  // 渲染预览中的 LaTeX 公式
-  if(window.MathJax) MathJax.typesetPromise([$('imp-list')]).catch(e=>console.warn('MathJax preview error',e));
 };
 window.confirmImport=async()=>{
   if(!S.currentSubject){toast('请先选择科目','error');return;}
